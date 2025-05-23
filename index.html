@@ -5,6 +5,25 @@
   <title>우리들의 앱</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   
+    <!-- ✅ Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  
+    <!-- ✅ Firebase Config -->
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyD0GVrK55GdzCeUNzEp2suL861qoFURpDo",
+        authDomain: "memo-app-backend-24bb4.firebaseapp.com",
+        projectId: "memo-app-backend-24bb4",
+        storageBucket: "memo-app-backend-24bb4.appspot.com",  // ← 꼭 `.appspot.com`으로 수정
+        messagingSenderId: "848227443507",
+        appId: "1:848227443507:web:be5390301f33a52667d446",
+        databaseURL: "https://memo-app-backend-24bb4-default-rtdb.asia-southeast1.firebasedatabase.app"
+      };
+      firebase.initializeApp(firebaseConfig);
+    </script>  
 </head>
 
 <body>
