@@ -638,7 +638,7 @@ albumSearchBtn.onclick = function() {
 
 // ===================== 오늘의 질문 기능 =====================
 // 예시 질문 데이터 (실제 서비스라면 서버에서 받아옴)
-const firstQuestionDate = '2025-05-23';
+const firstQuestionDate = '2025-05-24';
 // 질문 리스트
 const questionList = [
   // 연애초기
