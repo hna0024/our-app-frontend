@@ -433,6 +433,7 @@ if (!firebaseInitialized) {
     if (e.target === albumPreviewModal) closeAlbumPreviewFunc();
   });
 
+
   // 3-2. 앨범 불러오기
   function loadAlbumsFromFirebase() {
     db.ref('albums').on('value', snapshot => {
@@ -547,31 +548,43 @@ if (!firebaseInitialized) {
     }
   }
 
-  // 3. 앨범 업로드 & 저장 로직 수정 (기존 addAlbumBtn.onclick 교체)
   addAlbumBtn.onclick = function() {
     const date = albumDate.value;
     const place = albumPlace.value.trim();
     const category = albumCategory.value;
     const desc = albumDesc.value.trim();
     const file = albumImage.files[0];
-    if (!date || !category || !file) return alert('날짜, 카테고리, 이미지는 필수입니다!');
-
+  
+    if (!date || !category || !file) {
+      alert('날짜, 카테고리, 이미지는 필수입니다!');
+      return;
+    }
+  
+    console.log('앨범 업로드 시작');
+  
     const fileRef = storage.ref().child(`albums/${Date.now()}_${file.name}`);
-    fileRef.put(file).then(snapshot => snapshot.ref.getDownloadURL()).then(url => {
-      const album = {
-        date, place, category, desc, image: url
-      };
-      const newRef = db.ref('albums').push();
-      album.id = newRef.key;
-      newRef.set(album);
-      renderAlbums();
-      albumDate.value = '';
-      albumPlace.value = '';
-      albumCategory.value = 'funny';
-      albumImage.value = '';
-      albumDesc.value = '';
-    }).catch(err => alert('이미지 업로드 실패'));
+    fileRef.put(file)
+      .then(snapshot => {
+        console.log('이미지 업로드 성공');
+        return snapshot.ref.getDownloadURL();
+      })
+      .then(url => {
+        console.log('다운로드 URL 얻음:', url);
+        const album = {
+          date, place, category, desc, image: url
+        };
+        const newRef = db.ref('albums').push();
+        album.id = newRef.key;
+        newRef.set(album)
+          .then(() => console.log('앨범 DB 저장 성공:', album))
+          .catch(err => console.error('앨범 DB 저장 실패:', err));
+      })
+      .catch(err => {
+        console.error('이미지 업로드 또는 URL 실패:', err);
+        alert('이미지 업로드 실패');
+      });
   };
+  
 
   tabs.forEach((tab, idx) => {
     tab.addEventListener('click', () => {
@@ -669,7 +682,7 @@ if (!firebaseInitialized) {
 
   // ===================== 오늘의 질문 기능 =====================
   // 예시 질문 데이터 (실제 서비스라면 서버에서 받아옴)
-  const firstQuestionDate = '2025-05-23';
+  const firstQuestionDate = '2025-05-25';
   // 질문 리스트
   const questionList = [
     // 연애초기
