@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "memo-app-backend-24bb4"
-  }
+    "default": "memo-app-backend-24bb4",
+    "our-app": "memo-app-backend-24bb4"
+  },
+  "targets": {},
+  "etags": {}
 }
