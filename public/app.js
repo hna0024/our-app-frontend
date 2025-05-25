@@ -366,7 +366,7 @@ if (!firebaseInitialized) {
     // Firebase 저장용 객체
     const letter = {
       content,
-      from: '나',
+      from: myName,
       to,
       date: dateStr
     };
