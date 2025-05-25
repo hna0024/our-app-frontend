@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>우리들의 앱</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   
+    <!-- ✅ Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+  
+    <!-- ✅ Firebase Config -->
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyD0GVrK55GdzCeUNzEp2suL861qoFURpDo",
+        authDomain: "memo-app-backend-24bb4.firebaseapp.com",
+        projectId: "memo-app-backend-24bb4",
+        storageBucket: "memo-app-backend-24bb4.appspot.com",
+        messagingSenderId: "848227443507",
+        appId: "1:848227443507:web:be5390301f33a52667d446",
+        databaseURL: "https://memo-app-backend-24bb4-default-rtdb.asia-southeast1.firebasedatabase.app"
+      };
+      
+      // Firebase 초기화 및 완료 확인
+      let firebaseInitialized = false;
+      try {
+        firebase.initializeApp(firebaseConfig);
+        firebaseInitialized = true;
+        console.log('Firebase initialized successfully');
+      } catch (error) {
+        console.error('Firebase initialization error:', error);
+      }
+    </script>  
+</head>
+
+<body>
+  <h1>우리 만난지 n일 째♥</h1>
+  <div class="tabs">
+    <button class="tab active">📝 노트</button>
+    <button class="tab">✉️ 편지함</button>
+    <button class="tab">📒 앨범함</button>
+    <button class="tab">❓ 오늘의 질문</button>
+  </div>
+  <div class="filters" id="noteFilters">
+    <input type="text" id="search" placeholder="검색">
+    <select id="typeFilter">
+      <option value="all">전체</option>
+      <option value="memo">감사일기</option>
+      <option value="todo">할 일</option>
+    </select>
+    <select id="authorFilter">
+      <option value="all">전체</option>
+      <option value="J.W">J.W</option>
+      <option value="H.N">H.N</option>
+    </select>
+    <button id="addBtn">+ 추가</button>
+  </div>
+  <div class="main">
+    <div class="column" id="memoCol">
+      <h2>📝 한 줄의 기적 감사일기</h2>
+      <div id="memoList"></div>
+    </div>
+    <div class="column" id="todoCol">
+      <h2><input type="checkbox" checked disabled> 할 일</h2>
+      <div id="todoList"></div>
+    </div>
+  </div>
+
+  <!-- 모달 -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span id="closeModal" class="close">&times;</span>
+      <h3 id="modalTitle">일기 추가</h3>
+      <form id="memoForm">
+        <label>유형:
+          <select id="modalType">
+            <option value="memo">감사일기</option>
+            <option value="todo">할 일</option>
+          </select>
+        </label>
+        <label>작성자:
+          <select id="modalAuthor">
+            <option value="J.W">J.W</option>
+            <option value="H.N">H.N</option>
+          </select>
+        </label>
+        <label>내용:
+          <textarea id="modalContent" required></textarea>
+        </label>
+        <button type="submit" id="saveBtn">저장</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="tab-content" id="letter-section" style="display:none;">
+    <div class="letter-search-bar">
+      <input type="text" id="letterSearchInput" placeholder="내용 검색">
+      <select id="letterAuthorFilter">
+        <option value="all">전체</option>
+        <option value="J.W">J.W</option>
+        <option value="H.N">H.N</option>
+      </select>
+      <button id="letterSearchBtn">검색</button>
+    </div>
+    <div class="letter-input">
+      <textarea id="letterContent" placeholder="편지 내용을 입력하세요"></textarea>
+      <select id="letterTo">
+        <option value="J.W">J.W에게</option>
+        <option value="H.N">H.N에게</option>
+      </select>
+      <button id="sendLetter"><i class="fas fa-paper-plane"></i> 편지 보내기</button>
+    </div>
+    <div class="letter-list" id="letterList"></div>
+    <div class="pagination" id="letterPagination"></div>
+  </div>
+
+  <div class="tab-content" id="album-section" style="display:none;">
+    <div class="album-search-bar">
+      <input type="date" id="albumSearchDate" placeholder="날짜 검색">
+      <input type="text" id="albumSearchPlace" placeholder="장소 검색">
+      <button id="albumSearchBtn">검색</button>
+    </div>
+    <div class="album-input">
+      <input type="date" id="albumDate" placeholder="날짜 선택">
+      <input type="text" id="albumPlace" placeholder="장소 입력">
+      <select id="albumCategory">
+        <option value="funny">엽사</option>
+        <option value="best">인생샷</option>
+        <option value="edit">보정요청</option>
+      </select>
+      <input type="file" id="albumImage" accept="image/*">
+      <input type="text" id="albumDesc" placeholder="메모 입력">
+      <button id="addAlbum"><i class="fas fa-plus"></i> 앨범 추가</button>
+    </div>
+    <div class="album-list" id="albumList"></div>
+    <div id="albumPreviewModal" class="modal" style="display:none;">
+      <div class="modal-content" style="max-width:420px;">
+        <span id="closeAlbumPreview" class="close">&times;</span>
+        <img id="albumPreviewImg" src="" alt="앨범 미리보기" style="width:100%;max-height:400px;object-fit:contain;border-radius:12px;margin-bottom:18px;" />
+        <div style="font-size:1.1em;font-weight:bold;color:#ff7b9c;margin-bottom:8px;" id="albumPreviewDate"></div>
+        <div style="font-size:1em;color:#228be6;margin-bottom:8px;" id="albumPreviewPlace"></div>
+        <div style="font-size:1em;color:#333;" id="albumPreviewDesc"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="question-section" style="display:none;">
+    <div class="question-search-bar">
+      <input type="text" id="questionAnswerSearchInput" placeholder="답변 내용 검색">
+      <select id="questionAnswerAuthorFilter">
+        <option value="all">전체</option>
+        <option value="J.W">J.W</option>
+        <option value="H.N">H.N</option>
+      </select>
+      <button id="questionAnswerSearchBtn">검색</button>
+    </div>
+    <div class="question-header">
+      <div class="question-title" id="questionTitle">오늘의 질문이 여기에 표시됩니다.</div>
+      <div class="question-meta"><span id="questionNumber">#1</span> <span id="questionDate">2024-01-01</span></div>
+    </div>
+    <form id="questionAnswerForm" class="question-answer-form">
+      <textarea id="questionAnswerInput" placeholder="오늘의 질문에 답변을 입력하세요" required></textarea>
+      <select id="questionAnswerAuthor">
+        <option value="J.W">J.W</option>
+        <option value="H.N">H.N</option>
+      </select>
+      <button type="submit">답변 제출</button>
+    </form>
+    <div class="question-answer-list" id="questionAnswerList"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html> 
