@@ -7,7 +7,20 @@ if (!firebaseInitialized) {
   const storage = firebase.storage();
 
   let editingId = null; // 현재 수정 중인 메모 ID를 저장
+  let editingAlbum = null;
+  let editingLetter = null;
+  const editLetterModal = document.getElementById('editLetterModal');
+  const editLetterContent = document.getElementById('editLetterContent');
+  const saveEditLetterBtn = document.getElementById('saveEditLetterBtn');
+  const closeEditLetterModal = document.getElementById('closeEditLetterModal');
 
+  closeEditLetterModal.onclick = () => {
+    editLetterModal.style.display = 'none';
+    editingLetter = null;
+  };
+  window.onclick = function(e) {
+    if (e.target === editLetterModal) editLetterModal.style.display = 'none';
+  };
   // DOM 요소
   const memoList = document.getElementById('memoList');
   const todoList = document.getElementById('todoList');
@@ -90,6 +103,7 @@ if (!firebaseInitialized) {
       (memo.content.toLowerCase().includes(searchVal) || memo.type.toLowerCase().includes(searchVal)) &&
       memo.type === 'memo'
     );
+    filteredMemos.sort((a, b) => new Date(b.date) - new Date(a.date)); //내림차순 정렬렬
     const memoTotalPages = Math.ceil(filteredMemos.length / ITEMS_PER_PAGE) || 1;
     if (memoPage > memoTotalPages) memoPage = memoTotalPages;
     const memoStart = (memoPage - 1) * ITEMS_PER_PAGE;
@@ -104,6 +118,7 @@ if (!firebaseInitialized) {
       (memo.content.toLowerCase().includes(searchVal) || memo.type.toLowerCase().includes(searchVal)) &&
       memo.type === 'todo'
     );
+    filteredTodos.sort((a, b) => new Date(b.date) - new Date(a.date)); //내림차순 정렬렬
     const todoTotalPages = Math.ceil(filteredTodos.length / ITEMS_PER_PAGE) || 1;
     if (todoPage > todoTotalPages) todoPage = todoTotalPages;
     const todoStart = (todoPage - 1) * ITEMS_PER_PAGE;
@@ -285,6 +300,22 @@ if (!firebaseInitialized) {
     render();
   });
 
+  const editAlbumModal = document.getElementById('editAlbumModal');
+  const editAlbumDate = document.getElementById('editAlbumDate');
+  const editAlbumPlace = document.getElementById('editAlbumPlace');
+  const editAlbumDesc = document.getElementById('editAlbumDesc');
+  const saveEditAlbumBtn = document.getElementById('saveEditAlbumBtn');
+  const closeEditAlbumModal = document.getElementById('closeEditAlbumModal');
+
+  closeEditAlbumModal.onclick = () => {
+    editAlbumModal.style.display = 'none';
+    editingAlbum = null;
+  };
+  window.onclick = function(e) {
+    if (e.target === editAlbumModal) editAlbumModal.style.display = 'none';
+  };
+
+
   // ===================== 편지함 기능 =====================
 
   function createLetterCard(letter) {
@@ -303,9 +334,16 @@ if (!firebaseInitialized) {
           <div style="font-size:0.95em;color:#ff7b7b;font-weight:bold;">from: ${letter.from}</div>
           <div style="font-size:0.95em;color:#228be6;">to: ${letter.to}</div>
         </div>
-        <button class="delete-letter" title="삭제" style="background:none;border:none;cursor:pointer;margin-left:10px;"><i class="fas fa-trash"></i></button>
+        <button class="edit-letter" title="수정" style="background:none;border:none;cursor:pointer;margin-left:8px;color:#228be6;"><i class="fas fa-pen"></i></button>
+        <button class="delete-letter" title="삭제" style="background:none;border:none;cursor:pointer;margin-left:10px; color:#ff6b6b;"><i class="fas fa-trash"></i></button>
       </div>
     `;
+    card.querySelector('.edit-letter').onclick = () => {
+      editingLetter = letter;
+      editLetterContent.value = letter.content;
+      editLetterModal.style.display = 'flex';
+    };
+    
     card.querySelector('.delete-letter').onclick = () => deleteLetter(letter.id);
     return card;
   }
@@ -330,6 +368,7 @@ if (!firebaseInitialized) {
       const authorMatch = (letterSearchAuthor === 'all' || letter.to === letterSearchAuthor);
       return contentMatch && authorMatch;
     });
+    filteredLetters.sort((a, b) => new Date(b.date) - new Date(a.date));  // 최신순 정렬
     const totalPages = Math.ceil(filteredLetters.length / ITEMS_PER_PAGE) || 1;
     if (currentLetterPage > totalPages) currentLetterPage = totalPages;
     const start = (currentLetterPage - 1) * ITEMS_PER_PAGE;
@@ -435,84 +474,124 @@ if (!firebaseInitialized) {
 
 
   // 3-2. 앨범 불러오기
-  function loadAlbumsFromFirebase() {
-    db.ref('albums').on('value', snapshot => {
-      albums = [];
-      snapshot.forEach(child => albums.push(child.val()));
-      renderAlbums();
+ function loadAlbumsFromFirebase() {
+  db.ref('albums').on('value', snapshot => {
+    albums = [];
+    snapshot.forEach(child => {
+      const album = child.val();
+      album.id = child.key;
+      albums.push(album);
     });
-  }
+    renderAlbums();
+  });
+}
+
 
   function renderAlbums() {
     albumListDiv.innerHTML = '';
-    // 카테고리별 그룹핑
     const categories = [
       { key: 'funny', label: '엽사', icon: '😆', color: '#ffb84d' },
       { key: 'best', label: '인생샷', icon: '⭐', color: '#4dabf7' },
       { key: 'edit', label: '보정요청', icon: '🛠️', color: '#ff6b81' }
     ];
+  
     if (!window.albumSlideIndexes) window.albumSlideIndexes = {};
-    let filteredAlbums = albums.filter(a => {
-      let dateMatch = !albumSearchDate || a.date === albumSearchDate;
-      let placeMatch = !albumSearchPlace || (a.place && a.place.includes(albumSearchPlace));
+  
+    const filteredAlbums = albums.filter(a => {
+      const dateMatch = !albumSearchDate || a.date === albumSearchDate;
+      const placeMatch = !albumSearchPlace || (a.place && a.place.includes(albumSearchPlace));
       return dateMatch && placeMatch;
     });
+  
     categories.forEach(cat => {
       const catAlbums = filteredAlbums.filter(a => a.category === cat.key);
+      catAlbums.sort((a, b) => new Date(b.date.replace(',', '')) - new Date(a.date.replace(',', '')));
+      
       if (catAlbums.length === 0) return;
+  
       const catTitle = document.createElement('div');
       catTitle.style.fontWeight = 'bold';
       catTitle.style.fontSize = '1.1em';
       catTitle.style.margin = '18px 0 8px 0';
       catTitle.innerHTML = `<span style="background:${cat.color};color:#fff;padding:4px 12px;border-radius:10px;font-size:0.95em;">${cat.icon} ${cat.label}</span>`;
       albumListDiv.appendChild(catTitle);
-      // 슬라이드 row 컨테이너
+  
       const slideWrap = document.createElement('div');
       slideWrap.className = 'album-slide-wrap';
-      // 슬라이드 row
+  
       const row = document.createElement('div');
       row.className = 'album-slide-row';
-      const cardWidth = 150 + 18; // 카드+gap
+  
       const isMobile = window.innerWidth <= 700;
       const VISIBLE = isMobile ? 2 : 4;
-      if (window.albumSlideIndexes[cat.key] === undefined) window.albumSlideIndexes[cat.key] = 0;
+  
+      // 안전한 초기화
+      if (typeof window.albumSlideIndexes[cat.key] !== 'number') {
+        window.albumSlideIndexes[cat.key] = 0;
+      }
       let slideIdx = window.albumSlideIndexes[cat.key];
-      // 카드 생성 (slice로 DOM에 보이는 카드만 추가)
+  
       function renderCards() {
         row.innerHTML = '';
-        catAlbums.slice(slideIdx, slideIdx + VISIBLE).forEach(album => {
-          row.appendChild(createAlbumCard(album, cat.key));
-        });
+  
+        const maxIdx = Math.max(0, catAlbums.length - VISIBLE);
+        if (slideIdx < 0) slideIdx = 0;
+        if (slideIdx > maxIdx) slideIdx = maxIdx;
+  
+        window.albumSlideIndexes[cat.key] = slideIdx;
+  
+        const sliceStart = slideIdx;
+        const sliceEnd = Math.min(catAlbums.length, slideIdx + VISIBLE);
+        const albumsToShow = catAlbums.slice(sliceStart, sliceEnd);
+  
+        if (albumsToShow.length === 0 && catAlbums.length > 0) {
+          // fallback 렌더링
+          row.appendChild(createAlbumCard(catAlbums[0], cat.key));
+        } else {
+          albumsToShow.forEach(album => {
+            row.appendChild(createAlbumCard(album, cat.key));
+          });
+        }
       }
-      // 슬라이드 이동 함수
+  
       function updateSlide() {
         const maxIdx = Math.max(0, catAlbums.length - VISIBLE);
         if (slideIdx < 0) slideIdx = 0;
         if (slideIdx > maxIdx) slideIdx = maxIdx;
         window.albumSlideIndexes[cat.key] = slideIdx;
+  
         leftBtn.disabled = slideIdx === 0;
         rightBtn.disabled = slideIdx === maxIdx;
         renderCards();
       }
-      // 좌우 버튼
+  
       const leftBtn = document.createElement('button');
       leftBtn.className = 'album-slide-btn left';
       leftBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
       leftBtn.onclick = () => { slideIdx--; updateSlide(); };
+  
       const rightBtn = document.createElement('button');
       rightBtn.className = 'album-slide-btn right';
       rightBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
       rightBtn.onclick = () => { slideIdx++; updateSlide(); };
+  
       slideWrap.appendChild(leftBtn);
       slideWrap.appendChild(rightBtn);
       slideWrap.appendChild(row);
       albumListDiv.appendChild(slideWrap);
-      // 최초 렌더
-      renderCards();
+  
+      renderCards(); // 최초 렌더링
     });
   }
+  
+
 
   function createAlbumCard(album, catKey) {
+    if (!album || !album.image) {
+      console.warn("앨범 데이터가 유효하지 않음:", album);
+      return document.createElement('div');  // 빈 카드라도 리턴
+    }
+
     const card = document.createElement('div');
     card.className = 'album-card';
     card.style.background = '#fff5f5';
@@ -532,13 +611,39 @@ if (!firebaseInitialized) {
       <div style="font-size:0.9em;color:#ff7b9c;font-weight:bold;margin-bottom:2px;">${album.date || ''}</div>
       <div style="font-size:0.9em;color:#888;margin-bottom:2px;">${album.place || ''}</div>
       <div style="font-size:0.95em;color:#222;margin-bottom:2px;">${album.desc || ''}</div>
-      <button class="delete-album" style="background:#ffd8d8;color:#ff6b6b;border:none;border-radius:8px;padding:2px 10px;font-size:0.9em;margin-top:4px;cursor:pointer;">삭제</button>
-    `;
+      <div style="display: flex; gap: 8px; margin-top: 6px;">
+      <button class="edit-album">수정</button>
+      <button class="delete-album">삭제</button>
+    </div>`;
     // image 필드는 앨범 객체에 존재해야 함
+    card.querySelector('.edit-album').onclick = () => {
+      editingAlbum = album;
+      editAlbumDate.value = album.date || '';
+      editAlbumPlace.value = album.place || '';
+      editAlbumDesc.value = album.desc || '';
+      editAlbumModal.style.display = 'flex';
+    };
     card.querySelector('.delete-album').onclick = () => deleteAlbum(album.id, album.image);
     card.querySelector('.album-img-wrap').onclick = () => openAlbumPreview(album);
     return card;
   }
+
+  saveEditAlbumBtn.onclick = () => {
+    if (!editingAlbum) return;
+  
+    const updated = {
+      date: editAlbumDate.value,
+      place: editAlbumPlace.value,
+      desc: editAlbumDesc.value,
+    };
+  
+    db.ref(`albums/${editingAlbum.id}`).update(updated).then(() => {
+      editAlbumModal.style.display = 'none';
+      editingAlbum = null;
+      renderAlbums(); // 수정 후 새로 반영
+    });
+  };
+  
 
   function deleteAlbum(id, imageUrl) {
     if (confirm('정말 삭제하시겠습니까?')) {

@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>우리들의 앱</title>
+  <title>OURAPP</title>
+  <link rel="icon" type="image/png" href="rabbit-icon.png">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
    
@@ -107,8 +108,8 @@
     <div class="letter-input">
       <textarea id="letterContent" placeholder="편지 내용을 입력하세요"></textarea>
       <select id="letterTo">
-        <option value="J.W">J.W에게</option>
         <option value="H.N">H.N에게</option>
+        <option value="J.W">J.W에게</option>
       </select>
       <button id="sendLetter"><i class="fas fa-paper-plane"></i> 편지 보내기</button>
     </div>
@@ -147,15 +148,6 @@
   </div>
 
   <div class="tab-content" id="question-section" style="display:none;">
-    <div class="question-search-bar">
-      <input type="text" id="questionAnswerSearchInput" placeholder="답변 내용 검색">
-      <select id="questionAnswerAuthorFilter">
-        <option value="all">전체</option>
-        <option value="J.W">J.W</option>
-        <option value="H.N">H.N</option>
-      </select>
-      <button id="questionAnswerSearchBtn">검색</button>
-    </div>
     <div class="question-header">
       <div class="question-title" id="questionTitle">오늘의 질문이 여기에 표시됩니다.</div>
       <div class="question-meta"><span id="questionNumber">#1</span> <span id="questionDate">2024-01-01</span></div>
@@ -169,8 +161,104 @@
       <button type="submit">답변 제출</button>
     </form>
     <div class="question-answer-list" id="questionAnswerList"></div>
+    <div class="question-search-bar">
+      <input type="text" id="questionAnswerSearchInput" placeholder="답변 내용 검색">
+      <select id="questionAnswerAuthorFilter">
+        <option value="all">전체</option>
+        <option value="J.W">J.W</option>
+        <option value="H.N">H.N</option>
+      </select>
+      <button id="questionAnswerSearchBtn">검색</button>
+    </div>
+  </div>
+  <button id="changeNameBtn" class="pretty-btn" style="margin-top:30px; margin-right: 10px;">로그아웃</button>
+  <!-- 앨범 수정 모달 -->
+  <div id="editAlbumModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeEditAlbumModal">&times;</span>
+      <h3 style="color:#ff6b6b;margin-bottom:14px;">앨범 정보 수정</h3>
+      <label for="editAlbumDate">날짜</label>
+      <input type="date" id="editAlbumDate">
+      <label for="editAlbumPlace">장소</label>
+      <input type="text" id="editAlbumPlace" placeholder="예: 카페, 공원">
+      <label for="editAlbumDesc">설명</label>
+      <textarea id="editAlbumDesc" rows="3"></textarea>
+      <button id="saveEditAlbumBtn">수정 완료</button>
+    </div>
+  </div>
+  <!-- 편지 수정 모달 -->
+  <div id="editLetterModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeEditLetterModal">&times;</span>
+      <h3 style="color:#ff6b6b;margin-bottom:14px;">편지 수정</h3>
+      <label for="editLetterContent">내용</label>
+      <textarea id="editLetterContent" rows="3"></textarea>
+      <button id="saveEditLetterBtn">수정 완료</button>
+    </div>
+  </div>
+  <!-- 이니셜 변경 모달 -->
+  <div id="changeNameModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeChangeNameModal">&times;</span>
+      <h3 style="color:#ff6b6b;margin-bottom:14px;">계정 변경</h3>
+      <p style="margin-bottom:12px;">사용할 이니셜을 선택하세요:</p>
+      <div style="display:flex; gap: 12px; justify-content: center;">
+        <button class="initial-option" data-name="J.W">J.W</button>
+        <button class="initial-option" data-name="H.N">H.N</button>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>
+  <script>
+    const changeNameModal = document.getElementById('changeNameModal');
+    const closeChangeNameModal = document.getElementById('closeChangeNameModal');
+
+    changeNameBtn.onclick = () => {
+      highlightSelectedInitial(); // 현재 계정 강조
+      changeNameModal.style.display = 'flex';
+    };
+
+    closeChangeNameModal.onclick = () => {
+      changeNameModal.style.display = 'none';
+    };
+
+    window.addEventListener('click', e => {
+      if (e.target === changeNameModal) {
+        changeNameModal.style.display = 'none';
+      }
+    });
+
+    document.querySelectorAll('.initial-option').forEach(btn => {
+      btn.onclick = () => {
+        const name = btn.dataset.name;
+        localStorage.setItem('myName', name);
+        highlightSelectedInitial(); // 강조 업데이트
+        alert(`계정이 '${name}'으로 변경되었습니다!`);
+        changeNameModal.style.display = 'none';
+        location.reload();
+      };
+    });
+
+    function highlightSelectedInitial() {
+      const currentName = localStorage.getItem('myName');
+      document.querySelectorAll('.initial-option').forEach(btn => {
+        if (btn.dataset.name === currentName) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    /*firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        // user.displayName 또는 user.email 사용
+        myName = user.displayName || user.email;
+      } else {
+        // 로그인 UI 표시
+      }
+    });*/
+  </script>
 </body>
 </html> 

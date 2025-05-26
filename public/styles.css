@@ -102,7 +102,6 @@ h1 {
   text-align: left;
   margin-left: 10px;
 }
-
 .memo-card, .todo-card {
   background: #fff5f5;
   border-radius: 14px;
@@ -242,11 +241,75 @@ input[type="checkbox"]:checked {
   background: #228be6;
   color: #fff;
 }
+.modal-content input,
+.modal-content textarea {
+  width: 100%;
+  border-radius: 8px;
+  border: 2px solid #ffd8d8;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 1em;
+  font-family: 'Jua', 'Arial', sans-serif;
+}
+#saveEditAlbumBtn {
+  background: #ffb6c9;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 0;
+  width: 100%;
+  font-size: 1.1em;
+  margin-top: 10px;
+  cursor: pointer;
+  font-family: 'Jua', 'Arial', sans-serif;
+  transition: background 0.2s;
+}
+#saveEditAlbumBtn:hover {
+  background: #ff7b9c;
+  color: #fff;
+}
+#saveEditLetterBtn {
+  background: #ffb6c9;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 0;
+  width: 100%;
+  font-size: 1.1em;
+  margin-top: 10px;
+  cursor: pointer;
+  font-family: 'Jua', 'Arial', sans-serif;
+  transition: background 0.2s;
+}
+#saveEditLetterBtn:hover {
+  background: #ff7b9c;
+  color: #fff;
+}
 @media (max-width: 900px) {
   .main { flex-direction: column; align-items: center; }
   .column { width: 95vw; }
 }
-
+.initial-option {
+  background: #ffb6c9;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 24px;
+  font-size: 1.1em;
+  cursor: pointer;
+  font-family: 'Jua', 'Arial', sans-serif;
+  transition: background 0.2s;
+}
+.initial-option.active {
+  background: #2bbcff !important;
+  color: #fff !important;
+  font-weight: bold;
+  box-shadow: 0 0 0 2px #a5d8ff;
+}
+.initial-option:hover {
+  background: #ff7b9c;
+  color: #fff;
+}
 .memo-icon {
   color: #ff7b7b;
   font-size: 0.8em;
@@ -595,8 +658,24 @@ input[type="checkbox"]:checked {
   font-family: 'Jua', 'Arial', sans-serif;
   transition: background 0.2s;
 }
+.album-card button.edit-album {
+  background: #b2f2ff;
+  color: #228be6;
+  border: none;
+  border-radius: 8px;
+  padding: 2px 10px;
+  font-size: 0.9em;
+  margin-top: 4px;
+  cursor: pointer;
+  font-family: 'Jua', 'Arial', sans-serif;
+  transition: background 0.2s;
+}
 .album-card button.delete-album:hover {
   background: #ffb6b6;
+  color: #fff;
+}
+.album-card button.edit-album:hover {
+  background: #228be6;
   color: #fff;
 }
 .album-input input#albumDesc {
@@ -985,7 +1064,7 @@ input[type="checkbox"]:checked {
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-bottom: 18px;
+  margin-top: 25px;
 }
 .question-search-bar input, .question-search-bar select {
   padding: 10px 14px;
@@ -1013,4 +1092,26 @@ input[type="checkbox"]:checked {
 }
 .question-search-bar button:hover {
   background: #ffb6b6;
+}
+
+.pretty-btn {
+  background: linear-gradient(90deg, #ffb6b6 0%, #ff7b9c 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-size: 0.9em;
+  font-family: 'Jua', 'Arial', sans-serif;
+  font-weight: bold;
+  box-shadow: 0 2px 8px #ffe0ec;
+  margin: 0 auto 18px auto;
+  display: block;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  letter-spacing: 1px;
+}
+.pretty-btn:hover {
+  background: linear-gradient(90deg, #ff7b9c 0%, #ffb6b6 100%);
+  box-shadow: 0 4px 16px #ffd8d8;
+  transform: translateY(-2px) scale(1.04);
 }
