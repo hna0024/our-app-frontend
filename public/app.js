@@ -13,11 +13,18 @@ if (!firebaseInitialized) {
   const editLetterContent = document.getElementById('editLetterContent');
   const saveEditLetterBtn = document.getElementById('saveEditLetterBtn');
   const closeEditLetterModal = document.getElementById('closeEditLetterModal');
+  const calendarMonthLabel = document.getElementById('calendarMonth');
+  const calendarGrid = document.getElementById('calendarGrid');
+  const prevMonthBtn = document.getElementById('prevMonth');
+  const nextMonthBtn = document.getElementById('nextMonth');
+  const calendarEvents = {};  // firebase에서 불러온 일정 저장용
+  let currentMonth = new Date();
 
-  closeEditLetterModal.onclick = () => {
-    editLetterModal.style.display = 'none';
-    editingLetter = null;
+  const sampleEvents = {
+    '2025-5-26': [{ title: '전시회', author: 'J.W' }],
+    '2025-5-28': [{ title: '데이트', author: 'H.N' }]
   };
+
   window.onclick = function(e) {
     if (e.target === editLetterModal) editLetterModal.style.display = 'none';
   };
@@ -127,6 +134,119 @@ if (!firebaseInitialized) {
     renderPagination(todoList, todoTotalPages, todoPage, p => { todoPage = p; render(); });
   }
 
+  function renderCalendar() {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    calendarMonthLabel.textContent = `${year}년 ${month + 1}월`;
+  
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+  
+    calendarGrid.innerHTML = '';
+  
+    const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    days.forEach(d => {
+      const cell = document.createElement('div');
+      cell.textContent = d;
+      cell.style.fontWeight = 'bold';
+      cell.style.textAlign = 'center';
+      calendarGrid.appendChild(cell);
+    });
+  
+    for (let i = 0; i < firstDay; i++) {
+      const empty = document.createElement('div');
+      calendarGrid.appendChild(empty);
+    }
+  
+    for (let date = 1; date <= lastDate; date++) {
+      const cell = document.createElement('div');
+      cell.className = 'calendar-cell';
+  
+      const dateSpan = document.createElement('div');
+      dateSpan.className = 'date';
+      dateSpan.textContent = date;
+      cell.appendChild(dateSpan);
+  
+      const key = `${year}-${month + 1}-${date}`;
+      const events = calendarEvents[key] || [];
+  
+      events.forEach(e => {
+        const tag = document.createElement('div');
+        tag.className = e.author === 'J.W' ? 'event-jw' : 'event-hn';
+        tag.textContent = e.title;
+        tag.dataset.eventId = e.id; // 이벤트 ID 저장
+        tag.onclick = () => {
+          editingCalendarEventId = e.id;
+          editCalendarEventDate.value = e.date; // 날짜 필드 채우기
+          editCalendarEventTitle.value = e.title; // 제목 필드 채우기
+          // editCalendarEventAuthor.textContent = e.author; // 작성자 표시 (선택 사항)
+          editCalendarEventModal.style.display = 'flex'; // 모달 열기
+        };
+        cell.appendChild(tag);
+      });
+  
+      cell.onclick = () => {
+        // 기존 날짜 셀 클릭 시 일정 추가 로직 (필요 시 여기에 추가)
+        // 예: 특정 날짜를 선택 상태로 만들고, 아래 input 필드에 해당 날짜 채우기 등
+        // 현재는 이벤트 태그 클릭으로 수정/삭제 모달만 열리게 합니다.
+        // 만약 날짜 셀 클릭 시 새 일정 추가 모달이 필요하다면 별도 구현 필요
+      };
+  
+      calendarGrid.appendChild(cell);
+    }
+  }
+  
+  prevMonthBtn.onclick = () => {
+    currentMonth.setMonth(currentMonth.getMonth() - 1);
+    renderCalendar();
+  };
+  nextMonthBtn.onclick = () => {
+    currentMonth.setMonth(currentMonth.getMonth() + 1);
+    renderCalendar();
+  };
+  
+  function loadCalendarEventsFromFirebase() {
+    db.ref('calendarEvents').on('value', snapshot => {
+      Object.keys(calendarEvents).forEach(k => delete calendarEvents[k]); // 초기화
+      snapshot.forEach(child => {
+        const event = child.val();
+        const [y, m, d] = event.date.split('-');
+        const key = `${+y}-${+m}-${+d}`;
+        if (!calendarEvents[key]) calendarEvents[key] = [];
+        calendarEvents[key].push(event);
+      });
+      renderCalendar();
+    });
+  }
+
+  const addCalendarEventBtn = document.getElementById('addCalendarEventBtn');
+  const calendarEventDate = document.getElementById('calendarEventDate');
+  const calendarEventTitle = document.getElementById('calendarEventTitle');
+  const calendarEventAuthor = document.getElementById('calendarEventAuthor');
+  
+  addCalendarEventBtn.onclick = () => {
+    const date = calendarEventDate.value;
+    const title = calendarEventTitle.value.trim();
+    const author = calendarEventAuthor.value;
+  
+    if (!date || !title) {
+      alert('날짜와 제목을 입력하세요!');
+      return;
+    }
+  
+    const ref = db.ref('calendarEvents').push();
+    const data = {
+      id: ref.key,
+      date,
+      title,
+      author
+    };
+    ref.set(data).then(() => {
+      calendarEventTitle.value = '';
+      loadCalendarEventsFromFirebase();
+    });
+  };
+  
   function renderPagination(container, totalPages, currentPage, onPageChange) {
     let pag = document.createElement('div');
     pag.className = 'pagination';
@@ -233,13 +353,13 @@ if (!firebaseInitialized) {
   
     if (editingId) {
       // 수정 모드
-      db.ref(`memos/${editingId}`).update(memo);
+      db.ref(`memos/${editingId}`).update(memo).then(() => showTabAlert('note'));
     } else {
       // 추가 모드
       const newRef = db.ref('memos').push();
       memo.id = newRef.key;
       memo.completed = false;
-      newRef.set(memo);
+      newRef.set(memo).then(() => showTabAlert('note'));
     }
   
     closeModalFunc();
@@ -248,7 +368,7 @@ if (!firebaseInitialized) {
   // 일기 삭제
   function deleteMemo(id) {
     if (confirm('정말 삭제하시겠습니까?')) {
-      db.ref(`memos/${id}`).remove(); // Firebase에서 삭제
+      db.ref(`memos/${id}`).remove().then(() => showTabAlert('note'));
     }
   }
 
@@ -293,11 +413,26 @@ if (!firebaseInitialized) {
 
   document.addEventListener('DOMContentLoaded', () => {
     updateDdayDisplay();
+    renderCalendar();
+    loadCalendarEventsFromFirebase();
     loadMemosFromFirebase();
     loadLettersFromFirebase();
     loadAlbumsFromFirebase();
     loadQuestionAnswersFromFirebase();
-    render();
+
+    // ↓ 초기 진입 시 달력만 보이도록 수정
+    const tabContents = document.querySelectorAll('.tab-content');
+    const mainSection = document.querySelector('.main');
+    const noteFilters = document.getElementById('noteFilters');
+    const calendarSection = document.getElementById('calendar-section'); // 달력 섹션 DOM 추가
+
+    // 모든 tab-content 숨기고 달력만 보이게
+    tabContents.forEach(sec => sec.style.display = 'none');
+    mainSection.style.display = 'none'; // 노트 섹션 숨김
+    noteFilters.style.display = 'none'; // 노트 필터 숨김
+    calendarSection.style.display = ''; // 달력 섹션 보이게
+
+    // Note: 탭 버튼의 active 클래스는 index.html에서 설정합니다.
   });
 
   const editAlbumModal = document.getElementById('editAlbumModal');
@@ -348,6 +483,26 @@ if (!firebaseInitialized) {
     return card;
   }
 
+  saveEditLetterBtn.onclick = () => {
+    if (!editingLetter) return;
+  
+    const updated = {
+      content: editLetterContent.value
+    };
+  
+    db.ref(`letters/${editingLetter.id}`).update(updated).then(() => {
+      editLetterModal.style.display = 'none';
+      editingLetter = null;
+      renderLetters();
+    });
+  };
+  // 편지 모달 닫기 버튼 핸들러러
+  closeEditLetterModal.onclick = () => {
+    editLetterModal.style.display = 'none';
+    editingLetter = null;
+  };
+  
+
   function loadLettersFromFirebase() {
     db.ref('letters').on('value', snapshot => {
       letters = [];
@@ -382,7 +537,7 @@ if (!firebaseInitialized) {
   
   function deleteLetter(id) {
     if (confirm('정말 삭제하시겠습니까?')) {
-      db.ref(`letters/${id}`).remove(); // Firebase에서 삭제
+      db.ref(`letters/${id}`).remove().then(() => showTabAlert('letter'));
     }
   }
   
@@ -413,7 +568,7 @@ if (!firebaseInitialized) {
     // Firebase에 저장
     const newRef = db.ref('letters').push(); // Firebase 고유 키 생성
     letter.id = newRef.key;                  // 키를 id로 부여
-    newRef.set(letter);                      // Firebase에 저장
+    newRef.set(letter).then(() => showTabAlert('letter'));
     
     // 화면 초기화
     letterContentInput.value = '';
@@ -423,11 +578,13 @@ if (!firebaseInitialized) {
 
   // ===================== 탭 전환 로직 =====================
   const tabs = document.querySelectorAll('.tab');
+  const tabContents = document.querySelectorAll('.tab-content');
   const mainSection = document.querySelector('.main');
   const letterSection = document.getElementById('letter-section');
   const noteFilters = document.getElementById('noteFilters');
   const letterSearchBar = document.querySelector('.letter-search-bar');
   const albumSection = document.getElementById('album-section');
+  const calendarSection = document.getElementById('calendar-section'); // 달력 섹션
 
   // 앨범 데이터
   let albums = [];
@@ -647,7 +804,7 @@ if (!firebaseInitialized) {
 
   function deleteAlbum(id, imageUrl) {
     if (confirm('정말 삭제하시겠습니까?')) {
-      db.ref(`albums/${id}`).remove();
+      db.ref(`albums/${id}`).remove().then(() => showTabAlert('album'));
       const storageRef = firebase.storage().refFromURL(imageUrl);
       storageRef.delete().catch(err => console.warn('이미지 삭제 실패:', err));
     }
@@ -681,7 +838,7 @@ if (!firebaseInitialized) {
         const newRef = db.ref('albums').push();
         album.id = newRef.key;
         newRef.set(album)
-          .then(() => console.log('앨범 DB 저장 성공:', album))
+          .then(() => { console.log('앨범 DB 저장 성공:', album); showTabAlert('album'); })
           .catch(err => console.error('앨범 DB 저장 실패:', err));
       })
       .catch(err => {
@@ -695,48 +852,40 @@ if (!firebaseInitialized) {
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      if (idx === 0) {
+
+      // 모든 tab-content 섹션 숨기기
+      tabContents.forEach(sec => sec.style.display = 'none');
+      // 노트(메인) 섹션은 별도 처리
+      mainSection.style.display = 'none';
+      noteFilters.style.display = 'none';
+
+      if (idx === 0) { // 달력
+        document.getElementById('calendar-section').style.display = '';
+        renderCalendar();
+      } else if (idx === 1) { // 노트
         mainSection.style.display = '';
-        letterSection.style.display = 'none';
         noteFilters.style.display = '';
-        letterSearchBar.style.display = 'none';
-        albumSection.style.display = 'none';
-        questionSection.style.display = 'none';
-      } else if (idx === 1) {
-        mainSection.style.display = 'none';
-        letterSection.style.display = '';
-        noteFilters.style.display = 'none';
-        letterSearchBar.style.display = '';
+        render();
+      } else if (idx === 2) { // 편지함
+        document.getElementById('letter-section').style.display = '';
+        document.querySelector('.letter-search-bar').style.display = '';
         renderLetters && renderLetters();
-        albumSection.style.display = 'none';
-        questionSection.style.display = 'none';
-      } else if (idx === 2) {
-        mainSection.style.display = 'none';
-        letterSection.style.display = 'none';
-        noteFilters.style.display = 'none';
-        letterSearchBar.style.display = 'none';
-        albumSection.style.display = '';
+      } else if (idx === 3) { // 앨범함
+        document.getElementById('album-section').style.display = '';
         renderAlbums && renderAlbums();
-        questionSection.style.display = 'none';
-      } else if (idx === 3) {
-        mainSection.style.display = 'none';
-        letterSection.style.display = 'none';
-        noteFilters.style.display = 'none';
-        letterSearchBar.style.display = 'none';
-        albumSection.style.display = 'none';
-        questionSection.style.display = '';
-        renderQuestion();
-        renderQuestionAnswers();
-      } else {
-        mainSection.style.display = '';
-        letterSection.style.display = 'none';
-        noteFilters.style.display = '';
-        letterSearchBar.style.display = 'none';
-        albumSection.style.display = 'none';
-        questionSection.style.display = 'none';
+      } else if (idx === 4) { // 오늘의 질문
+        document.getElementById('question-section').style.display = '';
+        renderQuestion && renderQuestion();
+        renderQuestionAnswers && renderQuestionAnswers();
       }
     });
   });
+
+  // 초기 진입 시
+  // 모든 tab-content 숨기고 노트만 보이게
+  tabContents.forEach(sec => sec.style.display = 'none');
+  mainSection.style.display = '';
+  noteFilters.style.display = '';
 
   // 편지함 검색 이벤트
   const letterSearchInput = document.getElementById('letterSearchInput');
@@ -875,7 +1024,7 @@ if (!firebaseInitialized) {
     '서로의 부모님께 어떻게 하는 게 좋을 거 같아?',
     '만약 부모님이 날 마음에 안 들어 하면 어떻게 할거야?',
     '잠자리는 얼마나 중요하다고 생각해?',
-    '어려울 때 가정내 의견 차이를 어떻게 해결했으면 해?',
+    '어려울 때 가장 가족 의견 차이를 어떻게 해결했으면 해?',
     '돈을 가장 많이 쓸 곳은 어디야?',
     '얼마나 안정적인 삶을 꿈꿔?',
     '한달에 저축과 지출은 얼마 정도야?',
@@ -961,9 +1110,7 @@ if (!firebaseInitialized) {
 
   function deleteAnswer(qKey, answerId) {
     if (confirm('정말 삭제하시겠습니까?')) {
-      db.ref(`questionAnswers/${qKey}/${answerId}`).remove().then(() => {
-        renderQuestionAnswers();
-      });
+      db.ref(`questionAnswers/${qKey}/${answerId}`).remove().then(() => { showTabAlert('question'); renderQuestionAnswers(); });
     }
   }
 
@@ -1016,8 +1163,94 @@ if (!firebaseInitialized) {
     const answer = { author, content, time };
     const qKey = `${todayQuestion.number}_${todayQuestion.title}`;
     const newRef = db.ref(`questionAnswers/${qKey}`).push();
-    newRef.set(answer);
+    newRef.set(answer).then(() => showTabAlert('question'));
     questionAnswerInput.value = '';
     renderQuestionAnswers();
+  };
+
+  const noteAlert = document.getElementById('noteAlert');
+  const letterAlert = document.getElementById('letterAlert');
+  const albumAlert = document.getElementById('albumAlert');
+  const questionAlert = document.getElementById('questionAlert');
+
+  function showTabAlert(type) {
+    if (type === 'note') noteAlert.style.display = 'inline-block';
+    if (type === 'letter') letterAlert.style.display = 'inline-block';
+    if (type === 'album') albumAlert.style.display = 'inline-block';
+    if (type === 'question') questionAlert.style.display = 'inline-block';
+  }
+
+  tabs.forEach((tab, idx) => {
+    tab.addEventListener('click', () => {
+      if (idx === 1) noteAlert.style.display = 'none';
+      if (idx === 2) letterAlert.style.display = 'none';
+      if (idx === 3) albumAlert.style.display = 'none';
+      if (idx === 4) questionAlert.style.display = 'none';
+    });
+  });
+
+  // 일정 수정/삭제 모달 관련 DOM
+  const editCalendarEventModal = document.getElementById('editCalendarEventModal');
+  const closeEditCalendarEventModal = document.getElementById('closeEditCalendarEventModal');
+  const editCalendarEventDate = document.getElementById('editCalendarEventDate');
+  const editCalendarEventTitle = document.getElementById('editCalendarEventTitle');
+  const saveEditCalendarEventBtn = document.getElementById('saveEditCalendarEventBtn');
+  const deleteCalendarEventBtn = document.getElementById('deleteCalendarEventBtn');
+
+  let editingCalendarEventId = null; // 현재 수정/삭제할 일정 ID
+
+  // 일정 수정/삭제 모달 닫기
+  closeEditCalendarEventModal.onclick = () => {
+    editCalendarEventModal.style.display = 'none';
+    editingCalendarEventId = null;
+  };
+  window.addEventListener('click', (e) => {
+    if (e.target === editCalendarEventModal) {
+      editCalendarEventModal.style.display = 'none';
+      editingCalendarEventId = null;
+    }
+  });
+
+  // 일정 수정 완료 버튼 클릭
+  saveEditCalendarEventBtn.onclick = () => {
+    if (!editingCalendarEventId) return;
+
+    const updatedDate = editCalendarEventDate.value;
+    const updatedTitle = editCalendarEventTitle.value.trim();
+    // 작성자는 수정하지 않고 기존 값 사용
+
+    if (!updatedDate || !updatedTitle) {
+       alert('날짜와 제목을 입력하세요!');
+       return;
+    }
+
+    db.ref(`calendarEvents/${editingCalendarEventId}`).update({
+      date: updatedDate,
+      title: updatedTitle
+      // author는 수정하지 않음
+    }).then(() => {
+      editCalendarEventModal.style.display = 'none';
+      editingCalendarEventId = null;
+      loadCalendarEventsFromFirebase(); // 데이터 다시 불러오고 렌더링
+    }).catch(error => {
+      console.error("일정 수정 실패:", error);
+      alert("일정 수정에 실패했습니다.");
+    });
+  };
+
+  // 일정 삭제 버튼 클릭
+  deleteCalendarEventBtn.onclick = () => {
+    if (!editingCalendarEventId) return;
+
+    if (confirm('정말 이 일정을 삭제하시겠습니까?')) {
+      db.ref(`calendarEvents/${editingCalendarEventId}`).remove().then(() => {
+        editCalendarEventModal.style.display = 'none';
+        editingCalendarEventId = null;
+        loadCalendarEventsFromFirebase(); // 데이터 다시 불러오고 렌더링
+      }).catch(error => {
+        console.error("일정 삭제 실패:", error);
+        alert("일정 삭제에 실패했습니다.");
+      });
+    }
   };
 }

@@ -39,10 +39,11 @@
 <body>
   <h1>우리 만난지 n일 째♥</h1>
   <div class="tabs">
-    <button class="tab active">📝 노트</button>
-    <button class="tab">✉️ 편지함</button>
-    <button class="tab">📒 앨범함</button>
-    <button class="tab">❓ 오늘의 질문</button>
+    <button class="tab active">📅 달력</button>
+    <button class="tab">📝 노트 <span class="tab-alert" id="noteAlert"></span></button>
+    <button class="tab">✉️ 편지함 <span class="tab-alert" id="letterAlert"></span></button>
+    <button class="tab">📒 앨범함 <span class="tab-alert" id="albumAlert"></span></button>
+    <button class="tab">❓ 오늘의 질문 <span class="tab-alert" id="questionAlert"></span></button>
   </div>
   <div class="filters" id="noteFilters">
     <input type="text" id="search" placeholder="검색">
@@ -68,6 +69,29 @@
       <div id="todoList"></div>
     </div>
   </div>
+
+  <div class="tab-content" id="calendar-section" style="display:none;">
+    <div class="calendar-header-감성">
+      <img src="rabbit-icon.png" alt="귀여운 토끼 아이콘" class="calendar-rabbit-icon">
+    </div>
+    <div id="calendarControls" class="calendar-controls">
+      <button id="prevMonth">&lt;</button>
+      <span id="calendarMonth">2024년 5월</span>
+      <button id="nextMonth">&gt;</button>
+    </div>
+    <div id="calendarGrid" class="calendar-grid"></div>
+    <div class="calendar-input">
+      <input type="date" id="calendarEventDate" />
+      <input type="text" id="calendarEventTitle" placeholder="일정 제목 입력" />
+      <select id="calendarEventAuthor">
+        <option value="J.W">J.W</option>
+        <option value="H.N">H.N</option>
+      </select>
+      <button id="addCalendarEventBtn"><i class="fas fa-plus"></i> 일정 추가</button>
+    </div>
+    <h2 style="color:#ff6b6b; text-align: center; margin-top: 30px;">소중한 하루들</h2>
+    <p style="text-align: center;">시간은 금이다!</p>
+  </div>  
 
   <!-- 모달 -->
   <div id="modal" class="modal">
@@ -171,7 +195,7 @@
       <button id="questionAnswerSearchBtn">검색</button>
     </div>
   </div>
-  <button id="changeNameBtn" class="pretty-btn" style="margin-top:30px; margin-right: 10px;">로그아웃</button>
+  <button id="changeNameBtn" class="pretty-btn" style="margin-top:30px;">로그아웃</button>
   <!-- 앨범 수정 모달 -->
   <div id="editAlbumModal" class="modal">
     <div class="modal-content">
@@ -205,6 +229,24 @@
       <div style="display:flex; gap: 12px; justify-content: center;">
         <button class="initial-option" data-name="J.W">J.W</button>
         <button class="initial-option" data-name="H.N">H.N</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 일정 수정/삭제 모달 -->
+  <div id="editCalendarEventModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeEditCalendarEventModal">&times;</span>
+      <h3 style="color:#ff6b6b;margin-bottom:14px;">일정 수정</h3>
+      <label for="editCalendarEventDate">날짜</label>
+      <input type="date" id="editCalendarEventDate">
+      <label for="editCalendarEventTitle">일정 제목</label>
+      <input type="text" id="editCalendarEventTitle">
+      <!-- 작성자는 myName 연동이므로 표시만 하거나 숨김 처리 -->
+      <!-- <div style="font-size:0.9em;color:#888;margin-bottom:10px;">작성자: <span id="editCalendarEventAuthor"></span></div> -->
+      <div style="display: flex; gap: 8px; margin-top: 16px;">
+        <button id="saveEditCalendarEventBtn">수정</button>
+        <button id="deleteCalendarEventBtn">삭제</button>
       </div>
     </div>
   </div>
