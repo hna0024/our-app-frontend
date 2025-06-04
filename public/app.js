@@ -1219,26 +1219,143 @@ if (!firebaseInitialized) {
     renderQuestionAnswers();
   };
 
+  // 알림 상태 관리 변수
+  let alertStatus = {};
+  const ALERT_STORAGE_KEY = 'ourapp_alert_status';
+
+  // 로컬 스토리지에서 알림 상태 불러오기
+  function loadAlertStatus() {
+    const savedStatus = localStorage.getItem(ALERT_STORAGE_KEY);
+    if (savedStatus) {
+      try {
+        alertStatus = JSON.parse(savedStatus);
+      } catch (e) {
+        console.error('Failed to parse alert status from localStorage', e);
+        alertStatus = {};
+      }
+    }
+    // 각 섹션별로 사용자 상태 초기화 (필요시)
+    ['note', 'letter', 'album', 'question'].forEach(section => {
+      if (!alertStatus[section]) alertStatus[section] = {};
+      if (typeof alertStatus[section][myName] === 'undefined') alertStatus[section][myName] = false;
+      if (typeof alertStatus[section][otherName] === 'undefined') alertStatus[section][otherName] = false;
+    });
+  }
+
+  // 알림 상태 로컬 스토리지에 저장
+  function saveAlertStatus() {
+    localStorage.setItem(ALERT_STORAGE_KEY, JSON.stringify(alertStatus));
+  }
+
+  // 탭별 알림 아이콘 DOM 변수 (기존 코드에 추가)
   const noteAlert = document.getElementById('noteAlert');
   const letterAlert = document.getElementById('letterAlert');
   const albumAlert = document.getElementById('albumAlert');
   const questionAlert = document.getElementById('questionAlert');
 
+  // 특정 탭의 알림 표시 (데이터 변경 시 호출)
   function showTabAlert(type) {
-    if (type === 'note') noteAlert.style.display = 'inline-block';
-    if (type === 'letter') letterAlert.style.display = 'inline-block';
-    if (type === 'album') albumAlert.style.display = 'inline-block';
-    if (type === 'question') questionAlert.style.display = 'inline-block';
+    if (alertStatus[type]) {
+      alertStatus[type][myName] = true; // 변경을 알림 (본인)
+      alertStatus[type][otherName] = true; // 변경을 알림 (상대방)
+      saveAlertStatus();
+      renderTabAlerts(); // 알림 상태 다시 렌더링
+    }
   }
 
-  tabs.forEach((tab, idx) => {
-    tab.addEventListener('click', () => {
-      if (idx === 1) noteAlert.style.display = 'none';
-      if (idx === 2) letterAlert.style.display = 'none';
-      if (idx === 3) albumAlert.style.display = 'none';
-      if (idx === 4) questionAlert.style.display = 'none';
-    });
+  // 현재 사용자의 알림 상태에 따라 알림 아이콘 렌더링
+  function renderTabAlerts() {
+    noteAlert.style.display = alertStatus.note && alertStatus.note[myName] ? 'inline-block' : 'none';
+    letterAlert.style.display = alertStatus.letter && alertStatus.letter[myName] ? 'inline-block' : 'none';
+    albumAlert.style.display = alertStatus.album && alertStatus.album[myName] ? 'inline-block' : 'none';
+    questionAlert.style.display = alertStatus.question && alertStatus.question[myName] ? 'inline-block' : 'none';
+  }
+
+  // 탭 클릭 이벤트 핸들러 (알림 해제 로직 포함)
+  function handleTabClick(sectionType) {
+    // 현재 탭의 active 클래스 관리 (기존 로직 유지)
+    tabs.forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab[data-section="${sectionType}"]`).classList.add('active');
+
+    // 모든 tab-content 섹션 숨기기
+    tabContents.forEach(sec => sec.style.display = 'none');
+
+    // 해당 섹션만 보이기
+    if (sectionType === 'calendar') {
+      document.getElementById('calendar-section').style.display = '';
+      renderCalendar();
+    } else if (sectionType === 'note') {
+      document.querySelector('.main').style.display = '';
+      document.getElementById('noteFilters').style.display = '';
+      render();
+    } else if (sectionType === 'letter') {
+      document.getElementById('letter-section').style.display = '';
+      document.querySelector('.letter-search-bar').style.display = '';
+      renderLetters && renderLetters();
+    } else if (sectionType === 'album') {
+      document.getElementById('album-section').style.display = '';
+      renderAlbums && renderAlbums();
+    } else if (sectionType === 'question') {
+      document.getElementById('question-section').style.display = '';
+      renderQuestion && renderQuestion();
+      renderQuestionAnswers && renderQuestionAnswers();
+    }
+
+    // 현재 사용자의 해당 섹션 알림 상태 해제
+    if (alertStatus[sectionType]) {
+       alertStatus[sectionType][myName] = false;
+       saveAlertStatus();
+       renderTabAlerts(); // 알림 상태 다시 렌더링
+    }
+  }
+
+  // DOMContentLoaded 리스너 수정 (초기 알림 로딩 및 렌더링 추가)
+  document.addEventListener('DOMContentLoaded', () => {
+    updateDdayDisplay();
+    renderCalendar();
+    loadCalendarEventsFromFirebase();
+    loadMemosFromFirebase();
+    loadLettersFromFirebase();
+    loadAlbumsFromFirebase();
+    loadQuestionAnswersFromFirebase();
+
+    loadAlertStatus(); // 알림 상태 로딩
+    renderTabAlerts(); // 초기 알림 아이콘 렌더링
+
+    // ↓ 초기 진입 시 달력만 보이도록 수정
+    const tabContents = document.querySelectorAll('.tab-content');
+    const mainSection = document.querySelector('.main');
+    const noteFilters = document.getElementById('noteFilters');
+    const calendarSection = document.getElementById('calendar-section'); // 달력 섹션 DOM 추가
+
+    // 모든 tab-content 숨기고 달력만 보이게
+    tabContents.forEach(sec => sec.style.display = 'none');
+    mainSection.style.display = 'none'; // 노트 섹션 숨김
+    noteFilters.style.display = 'none'; // 노트 필터 숨김
+    calendarSection.style.display = ''; // 달력 섹션 보이게
+
+    // Note: 탭 버튼의 active 클래스는 index.html에서 설정합니다.
   });
+
+  // 탭 버튼 클릭 이벤트 리스너 수정
+  tabs.forEach(tab => {
+     // data-section 속성을 탭 버튼에 추가하여 어떤 섹션인지 구분합니다.
+     if (tab.textContent.includes('달력')) tab.dataset.section = 'calendar';
+     else if (tab.textContent.includes('노트')) tab.dataset.section = 'note';
+     else if (tab.textContent.includes('편지함')) tab.dataset.section = 'letter';
+     else if (tab.textContent.includes('앨범함')) tab.dataset.section = 'album';
+     else if (tab.textContent.includes('오늘의 질문')) tab.dataset.section = 'question';
+
+     tab.addEventListener('click', () => {
+       const sectionType = tab.dataset.section;
+       handleTabClick(sectionType);
+     });
+  });
+
+  // Firebase 데이터 변경 시 showTabAlert 호출 (기존 로직 유지)
+  // 각 데이터 로딩 함수 또는 저장/수정/삭제 완료 시 showTabAlert(섹션 타입) 호출 필요
+  // 예: db.ref('memos').on('value', snapshot => { ... render(); showTabAlert('note'); });
+  // 현재 showTabAlert 호출은 대부분 `.then(() => showTabAlert('...'))` 형태로 되어 있습니다.
 
   // 일정 수정/삭제 모달 관련 DOM
   const editCalendarEventModal = document.getElementById('editCalendarEventModal');
