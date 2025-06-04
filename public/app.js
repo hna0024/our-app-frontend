@@ -176,7 +176,8 @@ if (!firebaseInitialized) {
         tag.className = e.author === 'J.W' ? 'event-jw' : 'event-hn';
         tag.textContent = e.title;
         tag.dataset.eventId = e.id; // 이벤트 ID 저장
-        tag.onclick = () => {
+        tag.onclick = (event) => { // event 객체를 인자로 받도록 수정
+          event.stopPropagation(); // 이벤트 버블링 중지
           editingCalendarEventId = e.id;
           editCalendarEventDate.value = e.date; // 날짜 필드 채우기
           editCalendarEventTitle.value = e.title; // 제목 필드 채우기
