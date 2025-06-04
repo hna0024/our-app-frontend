@@ -256,15 +256,18 @@
     <div class="modal-content">
       <span class="close" id="closeAddCalendarEventModal">&times;</span>
       <h3 style="color:#ff6b6b;margin-bottom:14px;">일정 등록</h3>
-      <label for="modalCalendarEventDate">날짜</label>
+      <label for="modalCalendarEventDate">시작 날짜</label>
       <input type="date" id="modalCalendarEventDate">
-      <label for="modalCalendarEventTitle">일정 제목</label>
-      <input type="text" id="modalCalendarEventTitle" placeholder="일정 입력">
+      <label for="modalCalendarEventEndDate">종료 날짜</label>
+      <input type="date" id="modalCalendarEventEndDate">
+      <label for="modalCalendarEventTitle">일정 내용</label>
+      <input type="text" id="modalCalendarEventTitle" placeholder="입력해주세요.">
       <label for="modalCalendarEventAuthor">작성자</label>
       <select id="modalCalendarEventAuthor">
         <option value="J.W">J.W</option>
         <option value="H.N">H.N</option>
       </select>
+      
       <button id="modalAddCalendarEventBtn"><i class="fas fa-plus"></i> 일정 추가</button>
     </div>
   </div>

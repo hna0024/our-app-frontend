@@ -195,12 +195,13 @@ if (!firebaseInitialized) {
         closeEditCalendarEventModalFunc();
         // 클릭된 날짜로 모달 필드 채우기
         const clickedDate = new Date(year, month, date);
-        // ISOString 대신 getFullYear, getMonth, getDate 사용
         const yyyy = clickedDate.getFullYear();
         const mm = String(clickedDate.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 1을 더하고 두 자리로 포맷
         const dd = String(clickedDate.getDate()).padStart(2, '0'); // 일을 두 자리로 포맷
         const dateString = `${yyyy}-${mm}-${dd}`;
         modalCalendarEventDate.value = dateString;
+        // 클릭된 날짜로 종료 날짜도 초기 설정 (새로 추가)
+        modalCalendarEventEndDate.value = dateString;
         modalCalendarEventTitle.value = ''; // 제목 필드는 비워둠
         // 작성자는 기본값('J.W')으로 설정되도록 select 태그를 그대로 사용
 
@@ -244,28 +245,52 @@ if (!firebaseInitialized) {
   const calendarEventDate = document.getElementById('modalCalendarEventDate'); // ID 변경
   const calendarEventTitle = document.getElementById('modalCalendarEventTitle'); // ID 변경
   const calendarEventAuthor = document.getElementById('modalCalendarEventAuthor'); // ID 변경
+  // 일정 등록 모달 종료 날짜 변수 추가
+  const modalCalendarEventEndDate = document.getElementById('modalCalendarEventEndDate');
   
   addCalendarEventBtn.onclick = () => {
     const date = calendarEventDate.value;
     const title = calendarEventTitle.value.trim();
     const author = calendarEventAuthor.value;
+    const endDate = modalCalendarEventEndDate.value; // 종료 날짜 값 가져오기
   
-    if (!date || !title) {
-      alert('날짜와 제목을 입력하세요!');
+    if (!date || !title || !endDate) { // 종료 날짜 유효성 검사 추가
+      alert('시작 날짜, 종료 날짜, 제목을 입력하세요!');
       return;
     }
-  
-    const ref = db.ref('calendarEvents').push();
-    const data = {
-      id: ref.key,
-      date,
-      title,
-      author
-    };
-    ref.set(data).then(() => {
+
+    const startDateObj = new Date(date);
+    const endDateObj = new Date(endDate);
+
+    if (startDateObj > endDateObj) { // 시작 날짜가 종료 날짜보다 늦으면 경고
+      alert('종료 날짜는 시작 날짜보다 빠를 수 없습니다!');
+      return;
+    }
+
+    const eventPromises = [];
+    // 시작 날짜부터 종료 날짜까지 각 날짜에 대해 일정 추가
+    for (let d = new Date(startDateObj); d <= endDateObj; d.setDate(d.getDate() + 1)) {
+      const eventDateString = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const ref = db.ref('calendarEvents').push();
+      const data = {
+        id: ref.key,
+        date: eventDateString,
+        title,
+        author
+      };
+      eventPromises.push(ref.set(data));
+    }
+
+    // 모든 일정이 추가된 후 처리
+    Promise.all(eventPromises).then(() => {
       calendarEventTitle.value = '';
+      modalCalendarEventDate.value = ''; // 시작 날짜 초기화
+      modalCalendarEventEndDate.value = ''; // 종료 날짜 초기화
       loadCalendarEventsFromFirebase();
-      closeAddCalendarEventModalFunc(); // 일정 등록 후 모달 닫기 (새로 추가)
+      closeAddCalendarEventModalFunc(); // 일정 등록 후 모달 닫기
+    }).catch(error => {
+      console.error('일정 등록 중 오류 발생:', error);
+      alert('일정 등록에 실패했습니다.');
     });
   };
   
@@ -1282,6 +1307,7 @@ if (!firebaseInitialized) {
     addCalendarEventModal.style.display = 'none';
     // 모달 닫을 때 입력 필드 초기화 (선택 사항)
     modalCalendarEventDate.value = '';
+    modalCalendarEventEndDate.value = '';
     modalCalendarEventTitle.value = '';
     modalCalendarEventAuthor.value = 'J.W'; // 기본값으로 설정
   }

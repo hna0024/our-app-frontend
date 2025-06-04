@@ -1355,3 +1355,17 @@ input[type="checkbox"]:checked {
   color: #ff6b6b;
 }
 
+#addCalendarEventModal .modal-content input[type='date'] {
+  padding: 10px;
+  border: 2px solid #ffd8d8;
+  border-radius: 8px;
+  font-family: 'Jua', sans-serif;
+}
+
+#modalCalendarEventEndDate {
+  padding: 10px;
+  border: 2px solid #ffd8d8;
+  border-radius: 8px;
+  font-family: 'Jua', sans-serif;
+}
+
