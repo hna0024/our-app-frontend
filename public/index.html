@@ -82,7 +82,7 @@
     <div id="calendarGrid" class="calendar-grid"></div>
     <div class="calendar-input">
       <input type="date" id="calendarEventDate" />
-      <input type="text" id="calendarEventTitle" placeholder="일정 제목 입력" />
+      <input type="text" id="calendarEventTitle" placeholder="일정 입력" />
       <select id="calendarEventAuthor">
         <option value="J.W">J.W</option>
         <option value="H.N">H.N</option>
@@ -153,7 +153,7 @@
       <select id="albumCategory">
         <option value="funny">엽사</option>
         <option value="best">인생샷</option>
-        <option value="edit">보정요청</option>
+        <option value="edit">일상</option>
       </select>
       <input type="file" id="albumImage" accept="image/*">
       <input type="text" id="albumDesc" placeholder="메모 입력">
@@ -248,6 +248,24 @@
         <button id="saveEditCalendarEventBtn">수정</button>
         <button id="deleteCalendarEventBtn">삭제</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 일정 등록 모달 추가 -->
+  <div id="addCalendarEventModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeAddCalendarEventModal">&times;</span>
+      <h3 style="color:#ff6b6b;margin-bottom:14px;">일정 등록</h3>
+      <label for="modalCalendarEventDate">날짜</label>
+      <input type="date" id="modalCalendarEventDate">
+      <label for="modalCalendarEventTitle">일정 제목</label>
+      <input type="text" id="modalCalendarEventTitle" placeholder="일정 입력">
+      <label for="modalCalendarEventAuthor">작성자</label>
+      <select id="modalCalendarEventAuthor">
+        <option value="J.W">J.W</option>
+        <option value="H.N">H.N</option>
+      </select>
+      <button id="modalAddCalendarEventBtn"><i class="fas fa-plus"></i> 일정 추가</button>
     </div>
   </div>
 

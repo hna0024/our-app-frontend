@@ -27,6 +27,7 @@ if (!firebaseInitialized) {
 
   window.onclick = function(e) {
     if (e.target === editLetterModal) editLetterModal.style.display = 'none';
+    if (e.target === addCalendarEventModal) closeAddCalendarEventModalFunc();
   };
   // DOM 요소
   const memoList = document.getElementById('memoList');
@@ -180,16 +181,25 @@ if (!firebaseInitialized) {
           editCalendarEventDate.value = e.date; // 날짜 필드 채우기
           editCalendarEventTitle.value = e.title; // 제목 필드 채우기
           // editCalendarEventAuthor.textContent = e.author; // 작성자 표시 (선택 사항)
-          editCalendarEventModal.style.display = 'flex'; // 모달 열기
+          // '일정 등록' 모달이 열려있으면 닫기
+          closeAddCalendarEventModalFunc();
+          editCalendarEventModal.style.display = 'flex'; // '일정 수정' 모달 열기
         };
         cell.appendChild(tag);
       });
   
+      // 캘린더 셀 클릭 시 '일정 등록' 모달 열기 (새로 추가)
       cell.onclick = () => {
-        // 기존 날짜 셀 클릭 시 일정 추가 로직 (필요 시 여기에 추가)
-        // 예: 특정 날짜를 선택 상태로 만들고, 아래 input 필드에 해당 날짜 채우기 등
-        // 현재는 이벤트 태그 클릭으로 수정/삭제 모달만 열리게 합니다.
-        // 만약 날짜 셀 클릭 시 새 일정 추가 모달이 필요하다면 별도 구현 필요
+        // '일정 수정' 모달이 열려있으면 닫기
+        closeEditCalendarEventModalFunc();
+        // 클릭된 날짜로 모달 필드 채우기
+        const clickedDate = new Date(year, month, date);
+        const dateString = clickedDate.toISOString().split('T')[0];
+        modalCalendarEventDate.value = dateString;
+        modalCalendarEventTitle.value = ''; // 제목 필드는 비워둠
+        // 작성자는 기본값('J.W')으로 설정되도록 select 태그를 그대로 사용
+
+        addCalendarEventModal.style.display = 'flex'; // '일정 등록' 모달 열기
       };
   
       calendarGrid.appendChild(cell);
@@ -210,19 +220,25 @@ if (!firebaseInitialized) {
       Object.keys(calendarEvents).forEach(k => delete calendarEvents[k]); // 초기화
       snapshot.forEach(child => {
         const event = child.val();
-        const [y, m, d] = event.date.split('-');
-        const key = `${+y}-${+m}-${+d}`;
-        if (!calendarEvents[key]) calendarEvents[key] = [];
-        calendarEvents[key].push(event);
+        // event 객체와 date 속성이 유효한지 확인
+        if (event && typeof event.date === 'string') {
+          const [y, m, d] = event.date.split('-');
+          const key = `${+y}-${+m}-${+d}`;
+          if (!calendarEvents[key]) calendarEvents[key] = [];
+          calendarEvents[key].push(event);
+        } else {
+          console.warn('Skipping invalid calendar event data:', event);
+        }
       });
       renderCalendar();
     });
   }
 
-  const addCalendarEventBtn = document.getElementById('addCalendarEventBtn');
-  const calendarEventDate = document.getElementById('calendarEventDate');
-  const calendarEventTitle = document.getElementById('calendarEventTitle');
-  const calendarEventAuthor = document.getElementById('calendarEventAuthor');
+  // 기존 일정 추가 버튼 클릭 리스너 (새로운 모달의 버튼으로 변경)
+  const addCalendarEventBtn = document.getElementById('modalAddCalendarEventBtn'); // ID 변경
+  const calendarEventDate = document.getElementById('modalCalendarEventDate'); // ID 변경
+  const calendarEventTitle = document.getElementById('modalCalendarEventTitle'); // ID 변경
+  const calendarEventAuthor = document.getElementById('modalCalendarEventAuthor'); // ID 변경
   
   addCalendarEventBtn.onclick = () => {
     const date = calendarEventDate.value;
@@ -244,6 +260,7 @@ if (!firebaseInitialized) {
     ref.set(data).then(() => {
       calendarEventTitle.value = '';
       loadCalendarEventsFromFirebase();
+      closeAddCalendarEventModalFunc(); // 일정 등록 후 모달 닫기 (새로 추가)
     });
   };
   
@@ -377,6 +394,8 @@ if (!firebaseInitialized) {
   closeModal.onclick = closeModalFunc;
   window.onclick = function(e) {
     if (e.target === modal) closeModalFunc();
+    if (e.target === editCalendarEventModal) closeEditCalendarEventModalFunc();
+    if (e.target === addCalendarEventModal) closeAddCalendarEventModalFunc();
   };
   search.oninput = render;
   typeFilter.onchange = render;
@@ -448,6 +467,8 @@ if (!firebaseInitialized) {
   };
   window.onclick = function(e) {
     if (e.target === editAlbumModal) editAlbumModal.style.display = 'none';
+    if (e.target === modal) closeModalFunc();
+    if (e.target === addCalendarEventModal) closeAddCalendarEventModalFunc();
   };
 
 
@@ -649,7 +670,7 @@ if (!firebaseInitialized) {
     const categories = [
       { key: 'funny', label: '엽사', icon: '😆', color: '#ffb84d' },
       { key: 'best', label: '인생샷', icon: '⭐', color: '#4dabf7' },
-      { key: 'edit', label: '보정요청', icon: '🛠️', color: '#ff6b81' }
+      { key: 'edit', label: '일상', icon: '🖇️', color: '#ff6b81' }
     ];
   
     if (!window.albumSlideIndexes) window.albumSlideIndexes = {};
@@ -1200,16 +1221,13 @@ if (!firebaseInitialized) {
   let editingCalendarEventId = null; // 현재 수정/삭제할 일정 ID
 
   // 일정 수정/삭제 모달 닫기
-  closeEditCalendarEventModal.onclick = () => {
+  function closeEditCalendarEventModalFunc() {
     editCalendarEventModal.style.display = 'none';
     editingCalendarEventId = null;
+  }
+  closeEditCalendarEventModal.onclick = () => {
+    closeEditCalendarEventModalFunc();
   };
-  window.addEventListener('click', (e) => {
-    if (e.target === editCalendarEventModal) {
-      editCalendarEventModal.style.display = 'none';
-      editingCalendarEventId = null;
-    }
-  });
 
   // 일정 수정 완료 버튼 클릭
   saveEditCalendarEventBtn.onclick = () => {
@@ -1252,5 +1270,17 @@ if (!firebaseInitialized) {
         alert("일정 삭제에 실패했습니다.");
       });
     }
+  };
+
+  // 일정 등록 모달 닫기 함수 (새로 추가)
+  function closeAddCalendarEventModalFunc() {
+    addCalendarEventModal.style.display = 'none';
+    // 모달 닫을 때 입력 필드 초기화 (선택 사항)
+    modalCalendarEventDate.value = '';
+    modalCalendarEventTitle.value = '';
+    modalCalendarEventAuthor.value = 'J.W'; // 기본값으로 설정
+  }
+  closeAddCalendarEventModal.onclick = () => {
+    closeAddCalendarEventModalFunc();
   };
 }
