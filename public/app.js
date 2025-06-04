@@ -195,7 +195,11 @@ if (!firebaseInitialized) {
         closeEditCalendarEventModalFunc();
         // 클릭된 날짜로 모달 필드 채우기
         const clickedDate = new Date(year, month, date);
-        const dateString = clickedDate.toISOString().split('T')[0];
+        // ISOString 대신 getFullYear, getMonth, getDate 사용
+        const yyyy = clickedDate.getFullYear();
+        const mm = String(clickedDate.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 1을 더하고 두 자리로 포맷
+        const dd = String(clickedDate.getDate()).padStart(2, '0'); // 일을 두 자리로 포맷
+        const dateString = `${yyyy}-${mm}-${dd}`;
         modalCalendarEventDate.value = dateString;
         modalCalendarEventTitle.value = ''; // 제목 필드는 비워둠
         // 작성자는 기본값('J.W')으로 설정되도록 select 태그를 그대로 사용
