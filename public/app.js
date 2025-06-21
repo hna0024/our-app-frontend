@@ -159,14 +159,34 @@ if (!firebaseInitialized) {
       calendarGrid.appendChild(empty);
     }
   
+    // 오늘 날짜 정보 가져오기
+    const today = new Date();
+    const todayYear = today.getFullYear();
+    const todayMonth = today.getMonth();
+    const todayDate = today.getDate();
+  
     for (let date = 1; date <= lastDate; date++) {
       const cell = document.createElement('div');
       cell.className = 'calendar-cell';
+  
+      // 오늘 날짜인지 확인
+      const isToday = (year === todayYear && month === todayMonth && date === todayDate);
+      if (isToday) {
+        cell.classList.add('today');
+      }
   
       const dateSpan = document.createElement('div');
       dateSpan.className = 'date';
       dateSpan.textContent = date;
       cell.appendChild(dateSpan);
+  
+      // 오늘 날짜인 경우 하트 아이콘 추가
+      if (isToday) {
+        const heartIcon = document.createElement('div');
+        heartIcon.className = 'today-heart';
+        heartIcon.innerHTML = '<i class="fas fa-heart"></i>';
+        cell.appendChild(heartIcon);
+      }
   
       const key = `${year}-${month + 1}-${date}`;
       const events = calendarEvents[key] || [];
@@ -295,25 +315,66 @@ if (!firebaseInitialized) {
   };
   
   function renderPagination(container, totalPages, currentPage, onPageChange) {
+    // 기존 페이지네이션 삭제 (중복 방지)
+    const existingPag = container.querySelector('.pagination');
+    if (existingPag) {
+        container.removeChild(existingPag);
+    }
+
+    if (totalPages <= 1) {
+        return; // 페이지가 1개 이하면 페이지네이션 숨김
+    }
+
     let pag = document.createElement('div');
     pag.className = 'pagination';
-    pag.style.justifyContent = 'center';
-    pag.style.marginTop = '18px';
-    for (let i = 1; i <= totalPages; i++) {
-      let btn = document.createElement('button');
-      btn.textContent = i;
-      btn.style.background = 'none';
-      btn.style.border = 'none';
-      btn.style.color = i === currentPage ? '#ff7b9c' : '#222';
-      btn.style.fontWeight = i === currentPage ? 'bold' : 'normal';
-      btn.style.fontSize = '0.5em';
-      btn.style.margin = '0 18px';
-      btn.style.padding = '0';
-      btn.style.cursor = 'pointer';
-      if (i === currentPage) btn.className = 'active';
-      btn.onclick = () => onPageChange(i);
-      pag.appendChild(btn);
+
+    // 이전 페이지 버튼
+    let prevBtn = document.createElement('button');
+    prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+    prevBtn.className = 'page-btn prev';
+    prevBtn.onclick = () => { if (currentPage > 1) onPageChange(currentPage - 1); };
+    if (currentPage === 1) prevBtn.disabled = true;
+    pag.appendChild(prevBtn);
+
+    // 페이지 번호 버튼
+    const maxPages = 8;
+    let startPage, endPage;
+    if (totalPages <= maxPages) {
+        startPage = 1;
+        endPage = totalPages;
+    } else {
+        const maxPagesBeforeCurrentPage = Math.floor(maxPages / 2) -1;
+        const maxPagesAfterCurrentPage = Math.ceil(maxPages / 2);
+        if (currentPage <= maxPagesBeforeCurrentPage +1) {
+            startPage = 1;
+            endPage = maxPages;
+        } else if (currentPage + maxPagesAfterCurrentPage >= totalPages) {
+            startPage = totalPages - maxPages + 1;
+            endPage = totalPages;
+        } else {
+            startPage = currentPage - maxPagesBeforeCurrentPage;
+            endPage = currentPage + maxPagesAfterCurrentPage-1;
+        }
     }
+
+    for (let i = startPage; i <= endPage; i++) {
+        let btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = 'page-btn';
+        if (i === currentPage) btn.classList.add('active');
+        btn.onclick = () => onPageChange(i);
+        pag.appendChild(btn);
+    }
+
+    // 다음 페이지 버튼
+    let nextBtn = document.createElement('button');
+    nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+    nextBtn.className = 'page-btn next';
+    nextBtn.onclick = () => { if (currentPage < totalPages) onPageChange(currentPage + 1); };
+    if (currentPage === totalPages) nextBtn.disabled = true;
+    pag.appendChild(nextBtn);
+
+    // 컨테이너의 마지막 자식으로 페이지네이션 추가
     container.appendChild(pag);
   }
 

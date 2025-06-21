@@ -123,11 +123,13 @@
     </div>
     <div class="letter-input">
       <textarea id="letterContent" placeholder="편지 내용을 입력하세요"></textarea>
-      <select id="letterTo">
-        <option value="H.N">H.N에게</option>
-        <option value="J.W">J.W에게</option>
-      </select>
-      <button id="sendLetter"><i class="fas fa-paper-plane"></i> 편지 보내기</button>
+      <div class="letter-actions">
+        <select id="letterTo">
+          <option value="H.N">H.N에게</option>
+          <option value="J.W">J.W에게</option>
+        </select>
+        <button id="sendLetter"><i class="fas fa-paper-plane"></i> 편지 보내기</button>
+      </div>
     </div>
     <div class="letter-list" id="letterList"></div>
     <div class="pagination" id="letterPagination"></div>

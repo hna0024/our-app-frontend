@@ -330,125 +330,46 @@ input[type="checkbox"]:checked {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  position: relative;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  background: transparent;
-  z-index: 2;
-}
-
-.letter-input {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 18px;
-}
-#letterContent {
-  width: 100%;
-  min-height: 80px;
-  border-radius: 8px;
-  border: 2px solid #ffd8d8;
-  padding: 10px;
-  font-size: 1.1em;
-  font-family: 'Jua', 'Arial', sans-serif;
-}
-#letterTo, #sendLetter {
-  font-family: 'Jua', 'Arial', sans-serif;
+  gap: 8px;
   font-size: 1em;
-  border-radius: 8px;
-  border: 2px solid #ffd8d8;
-  padding: 10px;
-  margin-bottom: 0;
-}
-#sendLetter {
-  background: #ff7b9c;
-  color: #fff;
-  border: none;
-  font-weight: bold;
-  margin-top: 8px;
-  transition: background 0.2s;
-  cursor: pointer;
-}
-#sendLetter:hover {
-  background: #ffb6c9;
-}
-.letter-list {
-  margin-bottom: 18px;
-}
-.answer-item {
-  background: #fff5f5;
-  padding: 20px 20px 20px 20px;
-  margin-bottom: 18px;
-  border-radius: 10px;
-  border: 1.5px solid #ffd8d8;
-  position: relative;
-}
-.answer-item p {
-  font-size: 1.1em;
-  margin-bottom: 12px;
-  font-weight: bold;
-}
-.answer-item .date {
-  display: block;
-  margin-top: 5px;
-  color: #868e96;
-  font-size: 0.97em;
-}
-.answer-item .author {
-  display: block;
-  margin-top: 5px;
-  color: #ff6b6b;
-  font-weight: bold;
-}
-.answer-item .to {
-  display: block;
-  margin-top: 5px;
-  color: #228be6;
-  font-size: 0.97em;
-}
-.delete-btn-icon {
-  position: absolute;
-  top: 16px;
-  right: 18px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.3em;
-  color: #ff6b6b;
-  padding: 0;
-  margin: 0;
-}
-.delete-btn-icon:hover {
-  color: #ff2b2b;
-}
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1em;
-  position: relative;
+  margin-top: 24px;
 }
 .page-btn {
   background: none;
   border: none;
-  color: #222;
-  font-weight: normal;
-  font-size: 1em;
-  margin: 0 8px;
-  padding: 0;
-  cursor: pointer;
-}
-.page-btn.active, .page-btn:hover {
-  color: #ff7b9c;
+  color: #555;
   font-weight: bold;
+  font-size: 1.1em;
+  font-family: 'Jua', sans-serif;
+  margin: 0;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 8px;
+  min-width: 32px;
+  min-height: 32px;
+  transition: all 0.2s ease-in-out;
 }
-
-#letter-section {
-  max-width: 650px;
-  margin: 0 auto;
-  width: 100%;
+.page-btn.active {
+  background: #ff7b9c;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.page-btn:hover:not(.active) {
+  background: #ffe9ec;
+  color: #ff7b9c;
+}
+.page-btn.prev, .page-btn.next {
+  font-size: 0.9em;
+  color: #aaa;
+}
+.page-btn.prev:hover:not(:disabled), .page-btn.next:hover:not(:disabled) {
+  color: #ff7b9c;
+  background: #fff5f5;
+}
+.page-btn:disabled {
+  color: #ddd;
+  cursor: not-allowed;
 }
 
 #letter-section {
@@ -1333,7 +1254,6 @@ input[type="checkbox"]:checked {
 #modalAddCalendarEventBtn {
   background: #ff7b9c;
   color: white;
-  margin: 0 auto;
 }
 
 #modalAddCalendarEventBtn:hover {
@@ -1372,5 +1292,106 @@ input[type="checkbox"]:checked {
   border: 2px solid #ffd8d8;
   border-radius: 8px;
   font-family: 'Jua', sans-serif;
+}
+
+/* 오늘 날짜 셀 스타일 */
+.calendar-cell.today {
+  background: linear-gradient(135deg, #ffe9ec 0%, #fff5f5 100%);
+  border: 2px solid #ff7b9c;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(255, 123, 156, 0.2);
+  transform: scale(1.02);
+  position: relative;
+  z-index: 2;
+}
+
+.calendar-cell.today .date {
+  color: #ff7b9c !important;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.calendar-cell.today:hover {
+  background: linear-gradient(135deg, #ffd8d8 0%, #ffe9ec 100%);
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(255, 123, 156, 0.3);
+}
+
+/* 오늘 날짜 하트 아이콘 */
+.today-heart {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: #ff7b9c;
+  font-size: 0.9em;
+  animation: heartbeat 1.5s ease-in-out infinite;
+  z-index: 3;
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.1);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+.letter-input {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+#letterContent {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 80px;
+  border-radius: 8px;
+  border: 2px solid #ffd8d8;
+  padding: 10px;
+  font-size: 1.1em;
+  font-family: 'Jua', 'Arial', sans-serif;
+}
+.letter-actions {
+  display: flex;
+  gap: 10px;
+}
+#letterTo {
+  font-family: 'Jua', 'Arial', sans-serif;
+  font-size: 1em;
+  border-radius: 8px;
+  border: 2px solid #ffd8d8;
+  padding: 10px;
+  margin-bottom: 0;
+  flex: 1;
+}
+#sendLetter {
+  font-family: 'Jua', 'Arial', sans-serif;
+  font-size: 1em;
+  border-radius: 8px;
+  padding: 10px 20px;
+  margin-bottom: 0;
+  background: #ff7b9c;
+  color: #fff;
+  border: none;
+  font-weight: bold;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+#sendLetter:hover {
+  background: #ffb6c9;
+}
+.letter-list {
+  margin-bottom: 18px;
 }
 
