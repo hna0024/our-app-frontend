@@ -930,6 +930,13 @@ input[type="checkbox"]:checked {
   }
 }
 
+.no-results {
+  text-align: center;
+  padding: 30px;
+  color: #888;
+  font-size: 1.1em;
+}
+
 #albumPreviewModal.modal {
   display: none;
   position: fixed;

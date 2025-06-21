@@ -62,6 +62,7 @@ if (!firebaseInitialized) {
   let currentLetterPage = 1;
   let letterSearchText = '';
   let letterSearchAuthor = 'all';
+  let questionAnswerPage = 1;
 
   // ===================== 오늘의 질문 기능 =====================
   // ---- 오늘의 질문 날짜/시간 유틸 함수 ----
@@ -1186,20 +1187,24 @@ if (!firebaseInitialized) {
   if (questionAnswerSearchInput && questionAnswerAuthorFilter && questionAnswerSearchBtn) {
     questionAnswerSearchInput.oninput = function() {
       questionAnswerSearchText = questionAnswerSearchInput.value;
+      questionAnswerSearchAuthor = questionAnswerAuthorFilter.value;
+      questionAnswerPage = 1; // 검색 시 첫 페이지로
       renderQuestionAnswers();
     };
     questionAnswerAuthorFilter.onchange = function() {
       questionAnswerSearchAuthor = questionAnswerAuthorFilter.value;
+      questionAnswerPage = 1; // 검색 시 첫 페이지로
       renderQuestionAnswers();
     };
     questionAnswerSearchBtn.onclick = function() {
       questionAnswerSearchText = questionAnswerSearchInput.value;
       questionAnswerSearchAuthor = questionAnswerAuthorFilter.value;
+      questionAnswerPage = 1; // 검색 시 첫 페이지로
       renderQuestionAnswers();
     };
   }
 
-  // 4-2. 오늘의 질문 답변 불러오기
+  // 4-2. 오늘의 질문 답변 불러오기 -> renderQuestionAnswers로 통합
   function loadQuestionAnswersFromFirebase() {
     const qKey = `${todayQuestion.number}_${todayQuestion.title}`;
     db.ref(`questionAnswers/${qKey}`).on('value', snapshot => {
@@ -1226,42 +1231,104 @@ if (!firebaseInitialized) {
     }
   }
 
+  function createAnswerCard(ans, questionTitle) {
+    const card = document.createElement('div');
+    card.className = 'question-answer-item';
+    card.innerHTML = `
+      <div class="answer-title">${questionTitle}<span>🎁</span></div>
+      <div class="answer-content">${ans.content || ''}</div>
+      <div class="answer-meta">date: ${ans.time}</div>
+      <div class="answer-author">from: ${ans.author}</div>
+      <button class="delete-answer-btn" title="삭제"><i class="fas fa-trash"></i></button>
+    `;
+    card.querySelector('.delete-answer-btn').onclick = () => {
+      deleteAnswer(ans.questionKey, ans.id);
+    };
+    return card;
+  }
+
   function renderQuestionAnswers() {
-    const qKey = `${todayQuestion.number}_${todayQuestion.title}`;
-    db.ref(`questionAnswers/${qKey}`).once('value').then(snapshot => {
-      let list = [];
-      snapshot.forEach(child => {
-        const val = child.val();
-        val.id = child.key;
-        list.push(val);
+    const isSearching = questionAnswerSearchText.trim() !== '' || questionAnswerSearchAuthor !== 'all';
+    questionAnswerList.innerHTML = ''; // 이전 결과 지우기
+
+    if (isSearching) {
+      // 모든 질문에서 답변 검색
+      db.ref('questionAnswers').once('value').then(snapshot => {
+        let allAnswers = [];
+        snapshot.forEach(questionSnapshot => {
+          const qKey = questionSnapshot.key;
+          const questionTitle = qKey.substring(qKey.indexOf('_') + 1);
+          questionSnapshot.forEach(answerSnapshot => {
+            const answer = answerSnapshot.val();
+            if (answer) {
+              answer.id = answerSnapshot.key;
+              answer.questionKey = qKey;
+              allAnswers.push({ ...answer, questionTitle });
+            }
+          });
+        });
+
+        // 검색어로 필터링
+        const filteredList = allAnswers.filter(ans => {
+          const authorMatch = (questionAnswerSearchAuthor === 'all' || ans.author === questionAnswerSearchAuthor);
+          const contentMatch = !questionAnswerSearchText.trim() || (ans.content && typeof ans.content === 'string' && ans.content.toLowerCase().includes(questionAnswerSearchText.toLowerCase()));
+          return authorMatch && contentMatch;
+        });
+
+        filteredList.sort((a, b) => b.time.localeCompare(a.time));
+
+        if (filteredList.length === 0) {
+          questionAnswerList.innerHTML = '<div class="no-results">검색 결과가 없습니다.</div>';
+        } else {
+          const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE);
+          if (questionAnswerPage > totalPages) questionAnswerPage = totalPages;
+          const start = (questionAnswerPage - 1) * ITEMS_PER_PAGE;
+          const pageItems = filteredList.slice(start, start + ITEMS_PER_PAGE);
+
+          pageItems.forEach(ans => questionAnswerList.appendChild(createAnswerCard(ans, ans.questionTitle)));
+          
+          renderPagination(questionAnswerList, totalPages, questionAnswerPage, (page) => {
+            questionAnswerPage = page;
+            renderQuestionAnswers();
+          });
+        }
+      }).catch(error => {
+        console.error("질문 답변 검색 중 오류 발생:", error);
+        questionAnswerList.innerHTML = '<div class="no-results">검색 중 오류가 발생했습니다.</div>';
       });
-  
-      // 필터
-      if (questionAnswerSearchText) {
-        list = list.filter(ans => ans.content.toLowerCase().includes(questionAnswerSearchText.toLowerCase()));
-      }
-      if (questionAnswerSearchAuthor !== 'all') {
-        list = list.filter(ans => ans.author === questionAnswerSearchAuthor);
-      }
-  
-      list.sort((a, b) => b.time.localeCompare(a.time));
-      questionAnswerList.innerHTML = '';
-      list.forEach(ans => {
-        const card = document.createElement('div');
-        card.className = 'question-answer-item';
-        card.innerHTML = `
-          <div class="answer-title">${todayQuestion.title}<span>🎁</span></div>
-          <div class="answer-content">${ans.content}</div>
-          <div class="answer-meta">date: ${ans.time}</div>
-          <div class="answer-author">from: ${ans.author}</div>
-          <button class="delete-answer-btn" title="삭제"><i class="fas fa-trash"></i></button>
-        `;
-        card.querySelector('.delete-answer-btn').onclick = () => {
-          deleteAnswer(qKey, ans.id);
-        };
-        questionAnswerList.appendChild(card);
+    } else {
+      // 기본: 오늘의 질문에 대한 답변만 표시
+      const qKey = `${todayQuestion.number}_${todayQuestion.title}`;
+      db.ref(`questionAnswers/${qKey}`).once('value').then(snapshot => {
+        let list = [];
+        snapshot.forEach(child => {
+          const val = child.val();
+          if (val) {
+            val.id = child.key;
+            val.questionKey = qKey;
+            list.push(val);
+          }
+        });
+
+        list.sort((a, b) => b.time.localeCompare(a.time));
+
+        if (list.length === 0) {
+          questionAnswerList.innerHTML = '<div class="no-results">오늘의 질문에 대한 답변이 아직 없습니다.</div>';
+        } else {
+          const totalPages = Math.ceil(list.length / ITEMS_PER_PAGE);
+          if (questionAnswerPage > totalPages) questionAnswerPage = totalPages;
+          const start = (questionAnswerPage - 1) * ITEMS_PER_PAGE;
+          const pageItems = list.slice(start, start + ITEMS_PER_PAGE);
+
+          pageItems.forEach(ans => questionAnswerList.appendChild(createAnswerCard(ans, todayQuestion.title)));
+          
+          renderPagination(questionAnswerList, totalPages, questionAnswerPage, (page) => {
+            questionAnswerPage = page;
+            renderQuestionAnswers();
+          });
+        }
       });
-    });
+    }
   }
 
   // 4. 오늘의 질문 답변 저장 (questionAnswerForm.onsubmit 수정)
