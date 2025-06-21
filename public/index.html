@@ -124,11 +124,11 @@
     <div class="letter-input">
       <textarea id="letterContent" placeholder="편지 내용을 입력하세요"></textarea>
       <div class="letter-actions">
-        <select id="letterTo">
-          <option value="H.N">H.N에게</option>
-          <option value="J.W">J.W에게</option>
-        </select>
-        <button id="sendLetter"><i class="fas fa-paper-plane"></i> 편지 보내기</button>
+      <select id="letterTo">
+        <option value="H.N">H.N에게</option>
+        <option value="J.W">J.W에게</option>
+      </select>
+      <button id="sendLetter"><i class="fas fa-paper-plane"></i> 편지 보내기</button>
       </div>
     </div>
     <div class="letter-list" id="letterList"></div>
@@ -263,6 +263,17 @@
       </select>
       
       <button id="modalAddCalendarEventBtn"><i class="fas fa-plus"></i> 일정 추가</button>
+    </div>
+  </div>
+
+  <!-- 앨범 카테고리 전체보기 모달 -->
+  <div id="albumCategoryModal" class="modal">
+    <div class="modal-content modal-lg">
+      <span class="close" id="closeAlbumCategoryModal">&times;</span>
+      <h3 id="albumCategoryModalTitle" style="color:#ff6b6b;margin-bottom:14px;">카테고리 전체 사진</h3>
+      <div id="albumCategoryModalGrid" class="album-category-grid">
+        <!-- Photos will be inserted here by JS -->
+      </div>
     </div>
   </div>
 

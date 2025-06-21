@@ -1402,3 +1402,70 @@ input[type="checkbox"]:checked {
   margin-bottom: 18px;
 }
 
+.view-all-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2em;
+  color: #ff7b9c;
+  padding: 0 8px;
+  margin-left: 8px;
+  vertical-align: middle;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.view-all-btn:hover {
+  color: #ff6b6b;
+  transform: scale(1.1);
+}
+
+.modal-lg {
+  max-width: 800px;
+  width: 90%;
+}
+
+.album-category-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 5px;
+}
+
+.album-category-grid-item {
+  width: 100%;
+  padding-top: 100%; /* Creates a square aspect ratio */
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.album-category-grid-item img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+
+.album-category-grid-item:hover img {
+  transform: scale(1.05);
+}
+
+@media (max-width: 700px) {
+  .album-search-bar {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .album-search-bar button {
+    width: 100%;
+  }
+  .album-category-grid {
+    grid-template-columns: repeat(3, 1fr); /* 3 columns on mobile */
+  }
+}
+

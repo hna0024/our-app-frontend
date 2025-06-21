@@ -359,12 +359,12 @@ if (!firebaseInitialized) {
     }
 
     for (let i = startPage; i <= endPage; i++) {
-        let btn = document.createElement('button');
-        btn.textContent = i;
+      let btn = document.createElement('button');
+      btn.textContent = i;
         btn.className = 'page-btn';
         if (i === currentPage) btn.classList.add('active');
-        btn.onclick = () => onPageChange(i);
-        pag.appendChild(btn);
+      btn.onclick = () => onPageChange(i);
+      pag.appendChild(btn);
     }
 
     // 다음 페이지 버튼
@@ -742,6 +742,44 @@ if (!firebaseInitialized) {
     if (e.target === albumPreviewModal) closeAlbumPreviewFunc();
   });
 
+  // 앨범 카테고리 모달 열기 함수 (새로 추가)
+  function openAlbumCategoryModal(categoryLabel, albums) {
+    const modal = document.getElementById('albumCategoryModal');
+    const modalTitle = document.getElementById('albumCategoryModalTitle');
+    const modalGrid = document.getElementById('albumCategoryModalGrid');
+    const closeModalBtn = document.getElementById('closeAlbumCategoryModal');
+
+    modalTitle.textContent = `${categoryLabel} 전체 사진`;
+    modalGrid.innerHTML = ''; // 이전 내용 지우기
+
+    if (albums.length === 0) {
+        modalGrid.innerHTML = '<div class="no-results">이 카테고리에는 사진이 없습니다.</div>';
+    } else {
+        albums.forEach(album => {
+          const imgWrap = document.createElement('div');
+          imgWrap.className = 'album-category-grid-item';
+          imgWrap.innerHTML = `<img src="${album.image}" alt="${album.desc || '앨범 이미지'}">`;
+          imgWrap.onclick = () => {
+              modal.style.display = 'none'; // 현재 모달 닫기
+              openAlbumPreview(album); // 개별 사진 미리보기 모달 열기
+          };
+          modalGrid.appendChild(imgWrap);
+        });
+    }
+
+    modal.style.display = 'flex';
+
+    closeModalBtn.onclick = () => {
+      modal.style.display = 'none';
+    };
+  }
+  window.addEventListener('click', function(e) {
+      const modal = document.getElementById('albumCategoryModal');
+      if (e.target === modal) {
+          modal.style.display = 'none';
+      }
+  });
+
 
   // 3-2. 앨범 불러오기
  function loadAlbumsFromFirebase() {
@@ -784,6 +822,14 @@ if (!firebaseInitialized) {
       catTitle.style.fontSize = '1.1em';
       catTitle.style.margin = '18px 0 8px 0';
       catTitle.innerHTML = `<span style="background:${cat.color};color:#fff;padding:4px 12px;border-radius:10px;font-size:0.95em;">${cat.icon} ${cat.label}</span>`;
+      
+      const viewAllBtn = document.createElement('button');
+      viewAllBtn.className = 'view-all-btn';
+      viewAllBtn.innerHTML = '<i class="fas fa-file-lines"></i>';
+      viewAllBtn.title = '전체 보기';
+      viewAllBtn.onclick = () => openAlbumCategoryModal(cat.label, catAlbums);
+      catTitle.appendChild(viewAllBtn);
+      
       albumListDiv.appendChild(catTitle);
   
       const slideWrap = document.createElement('div');
@@ -1298,19 +1344,19 @@ if (!firebaseInitialized) {
       });
     } else {
       // 기본: 오늘의 질문에 대한 답변만 표시
-      const qKey = `${todayQuestion.number}_${todayQuestion.title}`;
-      db.ref(`questionAnswers/${qKey}`).once('value').then(snapshot => {
-        let list = [];
-        snapshot.forEach(child => {
-          const val = child.val();
+    const qKey = `${todayQuestion.number}_${todayQuestion.title}`;
+    db.ref(`questionAnswers/${qKey}`).once('value').then(snapshot => {
+      let list = [];
+      snapshot.forEach(child => {
+        const val = child.val();
           if (val) {
-            val.id = child.key;
+        val.id = child.key;
             val.questionKey = qKey;
-            list.push(val);
+        list.push(val);
           }
         });
-
-        list.sort((a, b) => b.time.localeCompare(a.time));
+  
+      list.sort((a, b) => b.time.localeCompare(a.time));
 
         if (list.length === 0) {
           questionAnswerList.innerHTML = '<div class="no-results">오늘의 질문에 대한 답변이 아직 없습니다.</div>';
@@ -1325,9 +1371,9 @@ if (!firebaseInitialized) {
           renderPagination(questionAnswerList, totalPages, questionAnswerPage, (page) => {
             questionAnswerPage = page;
             renderQuestionAnswers();
-          });
-        }
       });
+        }
+    });
     }
   }
 
