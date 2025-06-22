@@ -16,12 +16,13 @@ if (!firebaseInitialized) {
   const modalContent = document.getElementById('modalContent');
   const modalDate = document.getElementById('modalDate');
   const modalTitle = document.getElementById('modalTitle');
+  const modalTitleInput = document.getElementById('modalTitleInput');
   const saveBtn = document.getElementById('saveBtn');
   const search = document.getElementById('search');
 
   // 페이지네이션 상태
   let devNotePage = 1;
-  const ITEMS_PER_PAGE = 5;
+  const ITEMS_PER_PAGE = 3;
 
   // 데이터
   let devNotes = [];
@@ -62,6 +63,7 @@ if (!firebaseInitialized) {
     const card = document.createElement('div');
     card.className = 'memo-card'; // 기존 스타일 재사용
     card.innerHTML = `
+      <div class="title">${note.title}</div>
       <div class="date">Date: ${note.date}  From: ${note.author}</div>
       <div class="content" style="white-space: pre-wrap;">${note.content}</div>
       <div class="card-btns">
@@ -79,7 +81,7 @@ if (!firebaseInitialized) {
     modal.style.display = 'flex';
     if (mode === 'edit' && note) {
       modalTitle.textContent = '개발노트 수정';
-
+      modalTitleInput.value = note.title || '';
       modalContent.value = note.content;
       
       if (note.date) {
@@ -94,6 +96,7 @@ if (!firebaseInitialized) {
       editingId = note.id;
     } else {
       modalTitle.textContent = '개발노트 추가';
+      modalTitleInput.value = '';
       modalContent.value = '';
       
       const now = new Date();
@@ -122,7 +125,8 @@ if (!firebaseInitialized) {
     const dateStr = `${dateTime.getFullYear()}-${String(dateTime.getMonth()+1).padStart(2,'0')}-${String(dateTime.getDate()).padStart(2,'0')}, ${String(dateTime.getHours()).padStart(2,'0')}:${String(dateTime.getMinutes()).padStart(2,'0')}`;
   
     const note = {
-      author: localStorage.getItem('myName'),
+      title: modalTitleInput.value,
+      author: localStorage.getItem('myName') || 'Guest',
       content: modalContent.value,
       date: dateStr
     };
