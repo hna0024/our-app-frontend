@@ -644,8 +644,8 @@ if (!firebaseInitialized) {
           <div style="font-size:0.95em;color:#ff7b7b;font-weight:bold;">from: ${letter.from}</div>
           <div style="font-size:0.95em;color:#228be6;">to: ${letter.to}</div>
         </div>
-        <button class="edit-letter" title="수정" style="background:none;border:none;cursor:pointer;margin-left:8px;color:#228be6;"><i class="fas fa-pen"></i></button>
-        <button class="delete-letter" title="삭제" style="background:none;border:none;cursor:pointer;margin-left:10px; color:#ff6b6b;"><i class="fas fa-trash"></i></button>
+        <button class="edit-letter letter-icon" title="수정" style="background:none;border:none;cursor:pointer;margin-left:8px;color:#228be6;"><i class="fas fa-pen"></i></button>
+        <button class="delete-letter letter-icon" title="삭제" style="background:none;border:none;cursor:pointer;margin-left:10px; color:#ff6b6b;"><i class="fas fa-trash"></i></button>
       </div>
     `;
     card.querySelector('.edit-letter').onclick = () => {
