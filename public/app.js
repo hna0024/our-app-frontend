@@ -40,6 +40,7 @@ if (!firebaseInitialized) {
   const modalAuthor = document.getElementById('modalAuthor');
   const modalContent = document.getElementById('modalContent');
   const modalTitle = document.getElementById('modalTitle');
+  const modalDate = document.getElementById('modalDate');
   const saveBtn = document.getElementById('saveBtn');
   const search = document.getElementById('search');
   const typeFilter = document.getElementById('typeFilter');
@@ -50,6 +51,7 @@ if (!firebaseInitialized) {
   const letterContentInput = document.getElementById('letterContent');
   const letterToInput = document.getElementById('letterTo');
   const letterListDiv = document.getElementById('letterList');
+  const editLetterDate = document.getElementById('editLetterDate');
 
   // 페이지네이션 상태
   let memoPage = 1;
@@ -431,12 +433,34 @@ if (!firebaseInitialized) {
       modalType.value = memo.type;
       modalAuthor.value = memo.author;
       modalContent.value = memo.content;
+      
+      // 기존 날짜를 datetime-local 형식으로 변환
+      if (memo.date) {
+        const dateParts = memo.date.split(', ');
+        const dateStr = dateParts[0];
+        const timeStr = dateParts[1] || '00:00';
+        const [year, month, day] = dateStr.split('-');
+        const [hour, minute] = timeStr.split(':');
+        const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+        modalDate.value = formattedDate;
+      }
+      
       editingId = memo.id;
     } else {
       modalTitle.textContent = '일기 추가';
       modalType.value = 'memo';
       modalAuthor.value = 'J.W';
       modalContent.value = '';
+      
+      // 현재 날짜와 시간으로 설정
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hour = String(now.getHours()).padStart(2, '0');
+      const minute = String(now.getMinutes()).padStart(2, '0');
+      modalDate.value = `${year}-${month}-${day}T${hour}:${minute}`;
+      
       editingId = null;
     }
   }
@@ -450,8 +474,10 @@ if (!firebaseInitialized) {
   memoForm.onsubmit = function(e) {
     e.preventDefault();
   
-    const now = new Date();
-    const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}, ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    // datetime-local 값을 기존 형식으로 변환
+    const dateTimeValue = modalDate.value;
+    const dateTime = new Date(dateTimeValue);
+    const dateStr = `${dateTime.getFullYear()}-${String(dateTime.getMonth()+1).padStart(2,'0')}-${String(dateTime.getDate()).padStart(2,'0')}, ${String(dateTime.getHours()).padStart(2,'0')}:${String(dateTime.getMinutes()).padStart(2,'0')}`;
   
     const memo = {
       type: modalType.value,
@@ -461,7 +487,7 @@ if (!firebaseInitialized) {
     };
   
     if (editingId) {
-      // 수정 모드
+      // 수정 모드 - 날짜도 함께 수정
       db.ref(`memos/${editingId}`).update(memo).then(() => showTabAlert('note'));
     } else {
       // 추가 모드
@@ -492,6 +518,42 @@ if (!firebaseInitialized) {
   search.oninput = render;
   typeFilter.onchange = render;
   authorFilter.onchange = render;
+
+  // 노트 섹션 텍스트 입력 필드에 Enter 키 이벤트 핸들러 추가
+  modalContent.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const cursorPos = this.selectionStart;
+      const textBefore = this.value.substring(0, cursorPos);
+      const textAfter = this.value.substring(cursorPos);
+      this.value = textBefore + '\n' + textAfter;
+      this.selectionStart = this.selectionEnd = cursorPos + 1;
+    }
+  });
+
+  // 편지함 섹션 텍스트 입력 필드에 Enter 키 이벤트 핸들러 추가
+  letterContentInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const cursorPos = this.selectionStart;
+      const textBefore = this.value.substring(0, cursorPos);
+      const textAfter = this.value.substring(cursorPos);
+      this.value = textBefore + '\n' + textAfter;
+      this.selectionStart = this.selectionEnd = cursorPos + 1;
+    }
+  });
+
+  // 편지함 편집 모달 텍스트 입력 필드에 Enter 키 이벤트 핸들러 추가
+  editLetterContent.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const cursorPos = this.selectionStart;
+      const textBefore = this.value.substring(0, cursorPos);
+      const textAfter = this.value.substring(cursorPos);
+      this.value = textBefore + '\n' + textAfter;
+      this.selectionStart = this.selectionEnd = cursorPos + 1;
+    }
+  });
 
   // 만난 날짜(2025-04-12)부터 오늘까지 일수 계산 및 표시
   function updateDdayDisplay() {
@@ -577,7 +639,7 @@ if (!firebaseInitialized) {
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
         <div style="flex:1;">
-          <div style="font-weight:bold;font-size:1.08em;margin-bottom:6px;">${letter.content}</div>
+          <div style="font-size:1rem;margin-bottom:6px;white-space:pre-wrap;">${letter.content}</div>
           <div style="font-size:0.95em;color:#888;margin-bottom:2px;">date: ${letter.date}</div>
           <div style="font-size:0.95em;color:#ff7b7b;font-weight:bold;">from: ${letter.from}</div>
           <div style="font-size:0.95em;color:#228be6;">to: ${letter.to}</div>
@@ -589,6 +651,18 @@ if (!firebaseInitialized) {
     card.querySelector('.edit-letter').onclick = () => {
       editingLetter = letter;
       editLetterContent.value = letter.content;
+      
+      // 기존 날짜를 datetime-local 형식으로 변환
+      if (letter.date) {
+        const dateParts = letter.date.split(', ');
+        const dateStr = dateParts[0];
+        const timeStr = dateParts[1] || '00:00';
+        const [year, month, day] = dateStr.split('-');
+        const [hour, minute] = timeStr.split(':');
+        const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+        editLetterDate.value = formattedDate;
+      }
+      
       editLetterModal.style.display = 'flex';
     };
     
@@ -599,8 +673,14 @@ if (!firebaseInitialized) {
   saveEditLetterBtn.onclick = () => {
     if (!editingLetter) return;
   
+    // datetime-local 값을 기존 형식으로 변환
+    const dateTimeValue = editLetterDate.value;
+    const dateTime = new Date(dateTimeValue);
+    const dateStr = `${dateTime.getFullYear()}-${String(dateTime.getMonth()+1).padStart(2,'0')}-${String(dateTime.getDate()).padStart(2,'0')}, ${String(dateTime.getHours()).padStart(2,'0')}:${String(dateTime.getMinutes()).padStart(2,'0')}`;
+  
     const updated = {
-      content: editLetterContent.value
+      content: editLetterContent.value,
+      date: dateStr
     };
   
     db.ref(`letters/${editingLetter.id}`).update(updated).then(() => {

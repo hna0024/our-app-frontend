@@ -19,26 +19,39 @@ body {
   box-shadow: 0 8px 30px rgba(255, 107, 160, 0.15);
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
+}
+
+/* For select_initials.html */
+.initials-container {
+  width: 520px;
+  height: 500px;
+}
+
+/* For login.html */
+.login-form-container {
   width: 320px;
+  height: auto;
 }
 
 .login-rabbit-icon {
-    width: 80px;
-    margin-bottom: 10px;
+    padding: 0px;
+    width: 130px;
+    margin-bottom: 20px;
 }
 
 h1 {
   color: #ff6b6b;
-  font-size: 1.8em;
+  font-size: 1.5rem;
   font-weight: bold;
 }
 
 input[type="email"],
 input[type="password"] {
-    width: 100%;
-    padding: 12px;
+    width: 90%;
+    padding: 10px;
     border-radius: 8px;
     border: 1px solid #ffd8d8;
     font-family: 'Jua', sans-serif;
@@ -59,7 +72,7 @@ input[type="password"]:focus {
   border: none;
   border-radius: 8px;
   padding: 12px;
-  width: 100%;
+  width: 90%;
   font-size: 1.2em;
   cursor: pointer;
   font-family: 'Jua', 'Arial', sans-serif;
@@ -72,7 +85,7 @@ input[type="password"]:focus {
 
 .initial-options {
   display: flex;
-  gap: 12px;
+  gap: 22px;
   justify-content: center;
 }
 
