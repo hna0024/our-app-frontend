@@ -404,6 +404,7 @@ input[type="checkbox"]:checked {
 
 .letter-search-bar {
   display: flex;
+  margin-top: 50px;
   justify-content: center;
   gap: 10px;
   margin-bottom: 18px;
@@ -716,6 +717,7 @@ input[type="checkbox"]:checked {
 
 .album-search-bar {
   display: flex;
+  margin-top: 50px;
   justify-content: center;
   gap: 10px;
   margin-bottom: 18px;
