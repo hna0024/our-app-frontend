@@ -35,21 +35,8 @@
       }
     </script>  
 </head>
-
 <body>
-
-  <div id="login-screen">
-    <div class="login-content">
-      <h3 style="color:#ff6b6b;margin-bottom:14px;">계정 선택</h3>
-      <p style="margin-bottom:12px;">사용할 이니셜을 선택하세요:</p>
-      <div style="display:flex; gap: 12px; justify-content: center;">
-        <button class="initial-option" data-name="J.W">J.W</button>
-        <button class="initial-option" data-name="H.N">H.N</button>
-        <button class="initial-option" data-name="Guest">Guest</button>
-      </div>
-    </div>
-  </div>
-
+ 
   <div id="app-container" style="display: none;">
     <h1>우리 만난지 n일 째♥</h1>
     <div class="tabs">
@@ -290,32 +277,20 @@
   <script src="app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const loginScreen = document.getElementById('login-screen');
-      const appContainer = document.getElementById('app-container');
-      const changeNameBtn = document.getElementById('changeNameBtn');
-
       const myName = localStorage.getItem('myName');
-
-      if (myName && ['J.W', 'H.N', 'Guest'].includes(myName)) {
-        loginScreen.style.display = 'none';
-        appContainer.style.display = 'block';
-      } else {
-        loginScreen.style.display = 'flex';
-        appContainer.style.display = 'none';
+      if (!myName) {
+        window.location.href = 'select_initials.html';
+        return;
       }
 
-      document.querySelectorAll('#login-screen .initial-option').forEach(btn => {
-        btn.onclick = () => {
-          const name = btn.dataset.name;
-          localStorage.setItem('myName', name);
-          location.reload();
-        };
-      });
+      const appContainer = document.getElementById('app-container');
+      appContainer.style.display = 'block';
 
+      const changeNameBtn = document.getElementById('changeNameBtn');
       if (changeNameBtn) {
         changeNameBtn.onclick = () => {
           localStorage.removeItem('myName');
-          location.reload();
+          window.location.href = 'select_initials.html';
         };
       }
 
@@ -324,7 +299,7 @@
         h1.style.cursor = 'pointer';
         h1.onclick = () => {
           localStorage.removeItem('myName');
-          location.reload();
+          window.location.href = 'select_initials.html';
         };
       }
     });

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인 - OURAPP</title>
+    <link rel="icon" type="image/png" href="rabbit-icon.png">
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="login-container">
+        <img src="rabbit-icon.png" alt="귀여운 토끼 아이콘" class="login-rabbit-icon">
+        <h1 id="login-title">로그인</h1>
+        <p>계속하려면 로그인해주세요.</p>
+        <input type="email" id="email" placeholder="이메일" required>
+        <input type="password" id="password" placeholder="비밀번호" required>
+        <button id="login-btn">로그인</button>
+        <a href="select_initials.html" class="back-link">뒤로가기</a>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script>
+        // Firebase Config (from index.html)
+        const firebaseConfig = {
+            apiKey: "AIzaSyD0GVrK55GdzCeUNzEp2suL861qoFURpDo",
+            authDomain: "memo-app-backend-24bb4.firebaseapp.com",
+            projectId: "memo-app-backend-24bb4",
+            storageBucket: "memo-app-backend-24bb4.firebasestorage.app",
+            messagingSenderId: "848227443507",
+            appId: "1:848227443507:web:be5390301f33a52667d446",
+            databaseURL: "https://memo-app-backend-24bb4-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const userInitial = urlParams.get('user');
+
+        const loginTitle = document.getElementById('login-title');
+        if (userInitial) {
+            loginTitle.textContent = `${userInitial}님, 환영합니다!`;
+        }
+
+        const loginBtn = document.getElementById('login-btn');
+        loginBtn.onclick = () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // This is a placeholder for actual Firebase Auth logic.
+            // For now, let's just simulate a successful login.
+            if (email && password) {
+                localStorage.setItem('myName', userInitial);
+                window.location.href = 'index.html';
+            } else {
+                alert('이메일과 비밀번호를 입력해주세요.');
+            }
+        };
+    </script>
+</body>
+</html> 

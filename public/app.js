@@ -1247,6 +1247,12 @@ if (!firebaseInitialized) {
     };
   }
 
+  function deleteAnswer(qKey, answerId) {
+    if (confirm('정말 삭제하시겠습니까?')) {
+      db.ref(`questionAnswers/${qKey}/${answerId}`).remove().then(() => { showTabAlert('question'); renderQuestionAnswers(); });
+    }
+  }
+
   function createAnswerCard(ans, questionTitle) {
     const card = document.createElement('div');
     card.className = 'question-answer-item';

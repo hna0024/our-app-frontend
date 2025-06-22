@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인 - OURAPP</title>
+    <link rel="icon" type="image/png" href="rabbit-icon.png">
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="login-container">
+        <img src="rabbit-icon.png" alt="귀여운 토끼 아이콘" class="login-rabbit-icon">
+        <h1>우리만의 공간에 오신것을 환영합니다!</h1>
+        <p>사용할 이니셜을 선택해주세요.</p>
+        <div class="initial-options">
+            <button class="initial-option" data-name="J.W">J.W</button>
+            <button class="initial-option" data-name="H.N">H.N</button>
+            <button class="initial-option" data-name="Guest">Guest</button>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('.initial-option').forEach(btn => {
+            btn.onclick = () => {
+                const name = btn.dataset.name;
+                if (name === 'Guest') {
+                    localStorage.setItem('myName', 'Guest');
+                    window.location.href = 'index.html';
+                } else {
+                    window.location.href = `login.html?user=${name}`;
+                }
+            };
+        });
+    </script>
+</body>
+</html> 
