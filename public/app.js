@@ -529,7 +529,7 @@ if (!firebaseInitialized) {
     loadMemosFromFirebase();
     loadLettersFromFirebase();
     loadAlbumsFromFirebase();
-    loadQuestionAnswersFromFirebase();
+    renderQuestionAnswers();
 
     // ↓ 초기 진입 시 달력만 보이도록 수정
     const tabContents = document.querySelectorAll('.tab-content');
@@ -1194,19 +1194,16 @@ if (!firebaseInitialized) {
   const startDate = new Date(firstQuestionDate + 'T00:00:00+09:00');
   startDate.setHours(0,0,0,0);
   const diffDays = Math.floor((today - startDate) / (1000*60*60*24)) + 1;
+  const currentQuestionTitle = questionList[(diffDays-1) % questionList.length];
   const todayQuestion = {
     number: diffDays,
     date: getSeoulDateYMD(),
-    title: questionList[(diffDays-1) % questionList.length],
-    authors: ['J.W', 'H.N']
+    title: currentQuestionTitle,
+    key: `${diffDays}_${currentQuestionTitle.replace(/[.#$[\]]/g, '')}`, // Firebase에 안전한 키
+    authors: ['J.W', 'H.N', 'Guest']
   };
-  // 내 이름(로컬스토리지에 저장, 없으면 첫 진입 시 prompt)
+  // 내 이름(로컬스토리지에서 가져옴)
   let myName = localStorage.getItem('myName');
-  if (!myName || !['J.W','H.N'].includes(myName)) {
-    myName = prompt('이름을 선택하세요 (J.W 또는 H.N)', 'J.W');
-    if (!['J.W','H.N'].includes(myName)) myName = 'J.W';
-    localStorage.setItem('myName', myName);
-  }
   let otherName = todayQuestion.authors.find(n => n !== myName);
   // 답변 데이터
   let answers = {};
@@ -1250,33 +1247,6 @@ if (!firebaseInitialized) {
     };
   }
 
-  // 4-2. 오늘의 질문 답변 불러오기 -> renderQuestionAnswers로 통합
-  function loadQuestionAnswersFromFirebase() {
-    const qKey = `${todayQuestion.number}_${todayQuestion.title}`;
-    db.ref(`questionAnswers/${qKey}`).on('value', snapshot => {
-      const list = [];
-      snapshot.forEach(child => list.push(child.val()));
-      questionAnswerList.innerHTML = '';
-      list.sort((a,b) => b.time.localeCompare(a.time)).forEach(ans => {
-        const card = document.createElement('div');
-        card.className = 'question-answer-item';
-        card.innerHTML = `
-          <div class="answer-title">${todayQuestion.title}<span>🎁</span></div>
-          <div class="answer-content">${ans.content}</div>
-          <div class="answer-meta">date: ${ans.time}</div>
-          <div class="answer-author">from: ${ans.author}</div>
-        `;
-        questionAnswerList.appendChild(card);
-      });
-    });
-  }
-
-  function deleteAnswer(qKey, answerId) {
-    if (confirm('정말 삭제하시겠습니까?')) {
-      db.ref(`questionAnswers/${qKey}/${answerId}`).remove().then(() => { showTabAlert('question'); renderQuestionAnswers(); });
-    }
-  }
-
   function createAnswerCard(ans, questionTitle) {
     const card = document.createElement('div');
     card.className = 'question-answer-item';
@@ -1295,7 +1265,10 @@ if (!firebaseInitialized) {
 
   function renderQuestionAnswers() {
     const isSearching = questionAnswerSearchText.trim() !== '' || questionAnswerSearchAuthor !== 'all';
-    questionAnswerList.innerHTML = ''; // 이전 결과 지우기
+    questionAnswerList.innerHTML = '';
+    const paginationContainer = document.getElementById('questionPagination');
+    if (paginationContainer) paginationContainer.innerHTML = '';
+
 
     if (isSearching) {
       // 모든 질문에서 답변 검색
@@ -1303,22 +1276,26 @@ if (!firebaseInitialized) {
         let allAnswers = [];
         snapshot.forEach(questionSnapshot => {
           const qKey = questionSnapshot.key;
-          const questionTitle = qKey.substring(qKey.indexOf('_') + 1);
-          questionSnapshot.forEach(answerSnapshot => {
-            const answer = answerSnapshot.val();
-            if (answer) {
-              answer.id = answerSnapshot.key;
-              answer.questionKey = qKey;
-              allAnswers.push({ ...answer, questionTitle });
-            }
-          });
+          const questionNumber = parseInt(qKey.split('_')[0], 10);
+          
+          if (!isNaN(questionNumber) && questionNumber > 0 && questionNumber <= questionList.length) {
+            const originalTitle = questionList[questionNumber - 1];
+            questionSnapshot.forEach(answerSnapshot => {
+              const answer = answerSnapshot.val();
+              if (answer) {
+                answer.id = answerSnapshot.key;
+                answer.questionKey = qKey;
+                allAnswers.push({ ...answer, questionTitle: originalTitle });
+              }
+            });
+          }
         });
 
         // 검색어로 필터링
         const filteredList = allAnswers.filter(ans => {
-          const authorMatch = (questionAnswerSearchAuthor === 'all' || ans.author === questionAnswerSearchAuthor);
-          const contentMatch = !questionAnswerSearchText.trim() || (ans.content && typeof ans.content === 'string' && ans.content.toLowerCase().includes(questionAnswerSearchText.toLowerCase()));
-          return authorMatch && contentMatch;
+            const authorMatch = (questionAnswerSearchAuthor === 'all' || ans.author === questionAnswerSearchAuthor);
+            const contentMatch = !questionAnswerSearchText.trim() || (ans.content && typeof ans.content === 'string' && ans.content.toLowerCase().includes(questionAnswerSearchText.toLowerCase()));
+            return authorMatch && contentMatch;
         });
 
         filteredList.sort((a, b) => b.time.localeCompare(a.time));
@@ -1344,19 +1321,19 @@ if (!firebaseInitialized) {
       });
     } else {
       // 기본: 오늘의 질문에 대한 답변만 표시
-    const qKey = `${todayQuestion.number}_${todayQuestion.title}`;
-    db.ref(`questionAnswers/${qKey}`).once('value').then(snapshot => {
-      let list = [];
-      snapshot.forEach(child => {
-        const val = child.val();
+      const qKey = todayQuestion.key;
+      db.ref(`questionAnswers/${qKey}`).once('value').then(snapshot => {
+        let list = [];
+        snapshot.forEach(child => {
+          const val = child.val();
           if (val) {
-        val.id = child.key;
+            val.id = child.key;
             val.questionKey = qKey;
-        list.push(val);
+            list.push(val);
           }
         });
-  
-      list.sort((a, b) => b.time.localeCompare(a.time));
+
+        list.sort((a, b) => b.time.localeCompare(a.time));
 
         if (list.length === 0) {
           questionAnswerList.innerHTML = '<div class="no-results">오늘의 질문에 대한 답변이 아직 없습니다.</div>';
@@ -1371,9 +1348,9 @@ if (!firebaseInitialized) {
           renderPagination(questionAnswerList, totalPages, questionAnswerPage, (page) => {
             questionAnswerPage = page;
             renderQuestionAnswers();
-      });
+          });
         }
-    });
+      });
     }
   }
 
@@ -1386,7 +1363,7 @@ if (!firebaseInitialized) {
     const now = new Date();
     const time = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${now.getHours()}:${now.getMinutes()}`;
     const answer = { author, content, time };
-    const qKey = `${todayQuestion.number}_${todayQuestion.title}`;
+    const qKey = todayQuestion.key;
     const newRef = db.ref(`questionAnswers/${qKey}`).push();
     newRef.set(answer).then(() => showTabAlert('question'));
     questionAnswerInput.value = '';
@@ -1491,7 +1468,7 @@ if (!firebaseInitialized) {
     loadMemosFromFirebase();
     loadLettersFromFirebase();
     loadAlbumsFromFirebase();
-    loadQuestionAnswersFromFirebase();
+    renderQuestionAnswers();
 
     loadAlertStatus(); // 알림 상태 로딩
     renderTabAlerts(); // 초기 알림 아이콘 렌더링

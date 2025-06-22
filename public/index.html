@@ -37,296 +37,297 @@
 </head>
 
 <body>
-  <h1>우리 만난지 n일 째♥</h1>
-  <div class="tabs">
-    <button class="tab active">📅 달력</button>
-    <button class="tab">📝 노트 <span class="tab-alert" id="noteAlert"></span></button>
-    <button class="tab">✉️ 편지함 <span class="tab-alert" id="letterAlert"></span></button>
-    <button class="tab">📒 앨범함 <span class="tab-alert" id="albumAlert"></span></button>
-    <button class="tab">❓ 오늘의 질문 <span class="tab-alert" id="questionAlert"></span></button>
-  </div>
-  <div class="filters" id="noteFilters">
-    <input type="text" id="search" placeholder="검색">
-    <select id="typeFilter">
-      <option value="all">전체</option>
-      <option value="memo">감사일기</option>
-      <option value="todo">할 일</option>
-    </select>
-    <select id="authorFilter">
-      <option value="all">전체</option>
-      <option value="J.W">J.W</option>
-      <option value="H.N">H.N</option>
-    </select>
-    <button id="addBtn">+ 추가</button>
-  </div>
-  <div class="main">
-    <div class="column" id="memoCol">
-      <h2>📝 한 줄의 기적 감사일기</h2>
-      <div id="memoList"></div>
-    </div>
-    <div class="column" id="todoCol">
-      <h2><input type="checkbox" checked disabled> 할 일</h2>
-      <div id="todoList"></div>
-    </div>
-  </div>
 
-  <div class="tab-content" id="calendar-section" style="display:none;">
-    <div class="calendar-header-감성">
-      <img src="rabbit-icon.png" alt="귀여운 토끼 아이콘" class="calendar-rabbit-icon">
-    </div>
-    <div id="calendarControls" class="calendar-controls">
-      <button id="prevMonth">&lt;</button>
-      <span id="calendarMonth">2024년 5월</span>
-      <button id="nextMonth">&gt;</button>
-    </div>
-    <div id="calendarGrid" class="calendar-grid"></div>
-    
-    <h2 style="color:#ff6b6b; text-align: center; margin-top: 30px;">소중한 하루들</h2>
-    <p style="text-align: center;">시간은 금이다!</p>
-  </div>  
-
-  <!-- 모달 -->
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <span id="closeModal" class="close">&times;</span>
-      <h3 id="modalTitle">일기 추가</h3>
-      <form id="memoForm">
-        <label>유형:
-          <select id="modalType">
-            <option value="memo">감사일기</option>
-            <option value="todo">할 일</option>
-          </select>
-        </label>
-        <label>작성자:
-          <select id="modalAuthor">
-            <option value="J.W">J.W</option>
-            <option value="H.N">H.N</option>
-          </select>
-        </label>
-        <label>내용:
-          <textarea id="modalContent" required></textarea>
-        </label>
-        <button type="submit" id="saveBtn">저장</button>
-      </form>
-    </div>
-  </div>
-
-  <div class="tab-content" id="letter-section" style="display:none;">
-    <div class="letter-search-bar">
-      <input type="text" id="letterSearchInput" placeholder="내용 검색">
-      <select id="letterAuthorFilter">
-        <option value="all">전체</option>
-        <option value="J.W">J.W</option>
-        <option value="H.N">H.N</option>
-      </select>
-      <button id="letterSearchBtn">검색</button>
-    </div>
-    <div class="letter-input">
-      <textarea id="letterContent" placeholder="편지 내용을 입력하세요"></textarea>
-      <div class="letter-actions">
-      <select id="letterTo">
-        <option value="H.N">H.N에게</option>
-        <option value="J.W">J.W에게</option>
-      </select>
-      <button id="sendLetter"><i class="fas fa-paper-plane"></i> 편지 보내기</button>
-      </div>
-    </div>
-    <div class="letter-list" id="letterList"></div>
-    <div class="pagination" id="letterPagination"></div>
-  </div>
-
-  <div class="tab-content" id="album-section" style="display:none;">
-    <div class="album-search-bar">
-      <input type="date" id="albumSearchDate" placeholder="날짜 검색">
-      <input type="text" id="albumSearchPlace" placeholder="장소 검색">
-      <button id="albumSearchBtn">검색</button>
-    </div>
-    <div class="album-input">
-      <input type="date" id="albumDate" placeholder="날짜 선택">
-      <input type="text" id="albumPlace" placeholder="장소 입력">
-      <select id="albumCategory">
-        <option value="funny">엽사</option>
-        <option value="best">인생샷</option>
-        <option value="edit">일상</option>
-      </select>
-      <input type="file" id="albumImage" accept="image/*">
-      <input type="text" id="albumDesc" placeholder="메모 입력">
-      <button id="addAlbum"><i class="fas fa-plus"></i> 앨범 추가</button>
-    </div>
-    <div class="album-list" id="albumList"></div>
-    <div id="albumPreviewModal" class="modal" style="display:none;">
-      <div class="modal-content" style="max-width:420px;">
-        <span id="closeAlbumPreview" class="close">&times;</span>
-        <img id="albumPreviewImg" src="" alt="앨범 미리보기" style="width:100%;max-height:400px;object-fit:contain;border-radius:12px;margin-bottom:18px;" />
-        <div style="font-size:1.1em;font-weight:bold;color:#ff7b9c;margin-bottom:8px;" id="albumPreviewDate"></div>
-        <div style="font-size:1em;color:#228be6;margin-bottom:8px;" id="albumPreviewPlace"></div>
-        <div style="font-size:1em;color:#333;" id="albumPreviewDesc"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="tab-content" id="question-section" style="display:none;">
-    <div class="question-header">
-      <div class="question-title" id="questionTitle">오늘의 질문이 여기에 표시됩니다.</div>
-      <div class="question-meta"><span id="questionNumber">#1</span> <span id="questionDate">2024-01-01</span></div>
-    </div>
-    <form id="questionAnswerForm" class="question-answer-form">
-      <textarea id="questionAnswerInput" placeholder="오늘의 질문에 답변을 입력하세요" required></textarea>
-      <select id="questionAnswerAuthor">
-        <option value="J.W">J.W</option>
-        <option value="H.N">H.N</option>
-      </select>
-      <button type="submit">답변 제출</button>
-    </form>
-    <div class="question-answer-list" id="questionAnswerList"></div>
-    <div class="question-search-bar">
-      <input type="text" id="questionAnswerSearchInput" placeholder="답변 내용 검색">
-      <select id="questionAnswerAuthorFilter">
-        <option value="all">전체</option>
-        <option value="J.W">J.W</option>
-        <option value="H.N">H.N</option>
-      </select>
-      <button id="questionAnswerSearchBtn">검색</button>
-    </div>
-  </div>
-  <button id="changeNameBtn" class="pretty-btn" style="margin-top:30px;">로그아웃</button>
-  <!-- 앨범 수정 모달 -->
-  <div id="editAlbumModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeEditAlbumModal">&times;</span>
-      <h3 style="color:#ff6b6b;margin-bottom:14px;">앨범 정보 수정</h3>
-      <label for="editAlbumDate">날짜</label>
-      <input type="date" id="editAlbumDate">
-      <label for="editAlbumPlace">장소</label>
-      <input type="text" id="editAlbumPlace" placeholder="예: 카페, 공원">
-      <label for="editAlbumDesc">설명</label>
-      <textarea id="editAlbumDesc" rows="3"></textarea>
-      <button id="saveEditAlbumBtn">수정 완료</button>
-    </div>
-  </div>
-  <!-- 편지 수정 모달 -->
-  <div id="editLetterModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeEditLetterModal">&times;</span>
-      <h3 style="color:#ff6b6b;margin-bottom:14px;">편지 수정</h3>
-      <label for="editLetterContent">내용</label>
-      <textarea id="editLetterContent" rows="3"></textarea>
-      <button id="saveEditLetterBtn">수정 완료</button>
-    </div>
-  </div>
-  <!-- 이니셜 변경 모달 -->
-  <div id="changeNameModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeChangeNameModal">&times;</span>
-      <h3 style="color:#ff6b6b;margin-bottom:14px;">계정 변경</h3>
+  <div id="login-screen">
+    <div class="login-content">
+      <h3 style="color:#ff6b6b;margin-bottom:14px;">계정 선택</h3>
       <p style="margin-bottom:12px;">사용할 이니셜을 선택하세요:</p>
       <div style="display:flex; gap: 12px; justify-content: center;">
         <button class="initial-option" data-name="J.W">J.W</button>
         <button class="initial-option" data-name="H.N">H.N</button>
+        <button class="initial-option" data-name="Guest">Guest</button>
       </div>
     </div>
   </div>
 
-  <!-- 일정 수정/삭제 모달 -->
-  <div id="editCalendarEventModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeEditCalendarEventModal">&times;</span>
-      <h3 style="color:#ff6b6b;margin-bottom:14px;">일정 수정</h3>
-      <label for="editCalendarEventDate">날짜</label>
-      <input type="date" id="editCalendarEventDate">
-      <label for="editCalendarEventTitle">일정 제목</label>
-      <input type="text" id="editCalendarEventTitle">
-      <!-- 작성자는 myName 연동이므로 표시만 하거나 숨김 처리 -->
-      <!-- <div style="font-size:0.9em;color:#888;margin-bottom:10px;">작성자: <span id="editCalendarEventAuthor"></span></div> -->
-      <div style="display: flex; gap: 8px; margin-top: 16px;">
-        <button id="saveEditCalendarEventBtn">수정</button>
-        <button id="deleteCalendarEventBtn">삭제</button>
-      </div>
+  <div id="app-container" style="display: none;">
+    <h1>우리 만난지 n일 째♥</h1>
+    <div class="tabs">
+      <button class="tab active">📅 달력</button>
+      <button class="tab">📝 노트 <span class="tab-alert" id="noteAlert"></span></button>
+      <button class="tab">✉️ 편지함 <span class="tab-alert" id="letterAlert"></span></button>
+      <button class="tab">📒 앨범함 <span class="tab-alert" id="albumAlert"></span></button>
+      <button class="tab">❓ 오늘의 질문 <span class="tab-alert" id="questionAlert"></span></button>
     </div>
-  </div>
-
-  <!-- 일정 등록 모달 추가 -->
-  <div id="addCalendarEventModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeAddCalendarEventModal">&times;</span>
-      <h3 style="color:#ff6b6b;margin-bottom:14px;">일정 등록</h3>
-      <label for="modalCalendarEventDate">시작 날짜</label>
-      <input type="date" id="modalCalendarEventDate">
-      <label for="modalCalendarEventEndDate">종료 날짜</label>
-      <input type="date" id="modalCalendarEventEndDate">
-      <label for="modalCalendarEventTitle">일정 내용</label>
-      <input type="text" id="modalCalendarEventTitle" placeholder="일정을 입력하세요.">
-      <label for="modalCalendarEventAuthor">작성자</label>
-      <select id="modalCalendarEventAuthor">
+    <div class="filters" id="noteFilters">
+      <input type="text" id="search" placeholder="검색">
+      <select id="typeFilter">
+        <option value="all">전체</option>
+        <option value="memo">감사일기</option>
+        <option value="todo">할 일</option>
+      </select>
+      <select id="authorFilter">
+        <option value="all">전체</option>
         <option value="J.W">J.W</option>
         <option value="H.N">H.N</option>
+        <option value="Guest">Guest</option>
       </select>
-      
-      <button id="modalAddCalendarEventBtn"><i class="fas fa-plus"></i> 일정 추가</button>
+      <button id="addBtn">+ 추가</button>
     </div>
-  </div>
+    <div class="main">
+      <div class="column" id="memoCol">
+        <h2>📝 한 줄의 기적 감사일기</h2>
+        <div id="memoList"></div>
+      </div>
+      <div class="column" id="todoCol">
+        <h2><input type="checkbox" checked disabled> 할 일</h2>
+        <div id="todoList"></div>
+      </div>
+    </div>
 
-  <!-- 앨범 카테고리 전체보기 모달 -->
-  <div id="albumCategoryModal" class="modal">
-    <div class="modal-content modal-lg">
-      <span class="close" id="closeAlbumCategoryModal">&times;</span>
-      <h3 id="albumCategoryModalTitle" style="color:#ff6b6b;margin-bottom:14px;">카테고리 전체 사진</h3>
-      <div id="albumCategoryModalGrid" class="album-category-grid">
-        <!-- Photos will be inserted here by JS -->
+    <div class="tab-content" id="calendar-section" style="display:none;">
+      <div class="calendar-header-감성">
+        <img src="rabbit-icon.png" alt="귀여운 토끼 아이콘" class="calendar-rabbit-icon">
+      </div>
+      <div id="calendarControls" class="calendar-controls">
+        <button id="prevMonth">&lt;</button>
+        <span id="calendarMonth">2024년 5월</span>
+        <button id="nextMonth">&gt;</button>
+      </div>
+      <div id="calendarGrid" class="calendar-grid"></div>
+      
+      <h2 style="color:#ff6b6b; text-align: center; margin-top: 30px;">소중한 하루들</h2>
+      <p style="text-align: center;">시간은 금이다!</p>
+    </div>  
+
+    <!-- 모달 -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span id="closeModal" class="close">&times;</span>
+        <h3 id="modalTitle">일기 추가</h3>
+        <form id="memoForm">
+          <label>유형:
+            <select id="modalType">
+              <option value="memo">감사일기</option>
+              <option value="todo">할 일</option>
+            </select>
+          </label>
+          <label>작성자:
+            <select id="modalAuthor">
+              <option value="J.W">J.W</option>
+              <option value="H.N">H.N</option>
+              <option value="Guest">Guest</option>
+            </select>
+          </label>
+          <label>내용:
+            <textarea id="modalContent" required></textarea>
+          </label>
+          <button type="submit" id="saveBtn">저장</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="tab-content" id="letter-section" style="display:none;">
+      <div class="letter-search-bar">
+        <input type="text" id="letterSearchInput" placeholder="내용 검색">
+        <select id="letterAuthorFilter">
+          <option value="all">전체</option>
+          <option value="J.W">J.W</option>
+          <option value="H.N">H.N</option>
+          <option value="Guest">Guest</option>
+        </select>
+        <button id="letterSearchBtn">검색</button>
+      </div>
+      <div class="letter-input">
+        <textarea id="letterContent" placeholder="편지 내용을 입력하세요"></textarea>
+        <div class="letter-actions">
+        <select id="letterTo">
+          <option value="H.N">H.N에게</option>
+          <option value="J.W">J.W에게</option>
+          <option value="Guest">Guest에게</option>
+        </select>
+        <button id="sendLetter"><i class="fas fa-paper-plane"></i> 편지 보내기</button>
+        </div>
+      </div>
+      <div class="letter-list" id="letterList"></div>
+      <div class="pagination" id="letterPagination"></div>
+    </div>
+
+    <div class="tab-content" id="album-section" style="display:none;">
+      <div class="album-search-bar">
+        <input type="date" id="albumSearchDate" placeholder="날짜 검색">
+        <input type="text" id="albumSearchPlace" placeholder="장소 검색">
+        <button id="albumSearchBtn">검색</button>
+      </div>
+      <div class="album-input">
+        <input type="date" id="albumDate" placeholder="날짜 선택">
+        <input type="text" id="albumPlace" placeholder="장소 입력">
+        <select id="albumCategory">
+          <option value="funny">엽사</option>
+          <option value="best">인생샷</option>
+          <option value="edit">일상</option>
+        </select>
+        <input type="file" id="albumImage" accept="image/*">
+        <input type="text" id="albumDesc" placeholder="메모 입력">
+        <button id="addAlbum"><i class="fas fa-plus"></i> 앨범 추가</button>
+      </div>
+      <div class="album-list" id="albumList"></div>
+      <div id="albumPreviewModal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width:420px;">
+          <span id="closeAlbumPreview" class="close">&times;</span>
+          <img id="albumPreviewImg" src="" alt="앨범 미리보기" style="width:100%;max-height:400px;object-fit:contain;border-radius:12px;margin-bottom:18px;" />
+          <div style="font-size:1.1em;font-weight:bold;color:#ff7b9c;margin-bottom:8px;" id="albumPreviewDate"></div>
+          <div style="font-size:1em;color:#228be6;margin-bottom:8px;" id="albumPreviewPlace"></div>
+          <div style="font-size:1em;color:#333;" id="albumPreviewDesc"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="question-section" style="display:none;">
+      <div class="question-header">
+        <div class="question-title" id="questionTitle">오늘의 질문이 여기에 표시됩니다.</div>
+        <div class="question-meta"><span id="questionNumber">#1</span> <span id="questionDate">2024-01-01</span></div>
+      </div>
+      <form id="questionAnswerForm" class="question-answer-form">
+        <textarea id="questionAnswerInput" placeholder="오늘의 질문에 답변을 입력하세요" required></textarea>
+        <select id="questionAnswerAuthor">
+          <option value="J.W">J.W</option>
+          <option value="H.N">H.N</option>
+          <option value="Guest">Guest</option>
+        </select>
+        <button type="submit">답변 제출</button>
+      </form>
+      <div class="question-answer-list" id="questionAnswerList"></div>
+      <div class="pagination" id="questionPagination"></div>
+      <div class="question-search-bar">
+        <input type="text" id="questionAnswerSearchInput" placeholder="답변 내용 검색">
+        <select id="questionAnswerAuthorFilter">
+          <option value="all">전체</option>
+          <option value="J.W">J.W</option>
+          <option value="H.N">H.N</option>
+          <option value="Guest">Guest</option>
+        </select>
+        <button id="questionAnswerSearchBtn">검색</button>
+      </div>
+    </div>
+    <button id="changeNameBtn" class="pretty-btn" style="margin-top:30px;">로그아웃</button>
+    <!-- 앨범 수정 모달 -->
+    <div id="editAlbumModal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="closeEditAlbumModal">&times;</span>
+        <h3 style="color:#ff6b6b;margin-bottom:14px;">앨범 정보 수정</h3>
+        <label for="editAlbumDate">날짜</label>
+        <input type="date" id="editAlbumDate">
+        <label for="editAlbumPlace">장소</label>
+        <input type="text" id="editAlbumPlace" placeholder="예: 카페, 공원">
+        <label for="editAlbumDesc">설명</label>
+        <textarea id="editAlbumDesc" rows="3"></textarea>
+        <button id="saveEditAlbumBtn">수정 완료</button>
+      </div>
+    </div>
+    <!-- 편지 수정 모달 -->
+    <div id="editLetterModal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="closeEditLetterModal">&times;</span>
+        <h3 style="color:#ff6b6b;margin-bottom:14px;">편지 수정</h3>
+        <label for="editLetterContent">내용</label>
+        <textarea id="editLetterContent" rows="3"></textarea>
+        <button id="saveEditLetterBtn">수정 완료</button>
+      </div>
+    </div>
+    
+    <!-- 앨범 카테고리 전체보기 모달 -->
+    <div id="albumCategoryModal" class="modal">
+      <div class="modal-content modal-lg">
+        <span class="close" id="closeAlbumCategoryModal">&times;</span>
+        <h3 id="albumCategoryModalTitle" style="color:#ff6b6b;margin-bottom:14px;">카테고리 전체 사진</h3>
+        <div id="albumCategoryModalGrid" class="album-category-grid">
+          <!-- Photos will be inserted here by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 일정 수정/삭제 모달 -->
+    <div id="editCalendarEventModal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="closeEditCalendarEventModal">&times;</span>
+        <h3 style="color:#ff6b6b;margin-bottom:14px;">일정 수정</h3>
+        <label for="editCalendarEventDate">날짜</label>
+        <input type="date" id="editCalendarEventDate">
+        <label for="editCalendarEventTitle">일정 제목</label>
+        <input type="text" id="editCalendarEventTitle">
+        <!-- 작성자는 myName 연동이므로 표시만 하거나 숨김 처리 -->
+        <!-- <div style="font-size:0.9em;color:#888;margin-bottom:10px;">작성자: <span id="editCalendarEventAuthor"></span></div> -->
+        <div style="display: flex; gap: 8px; margin-top: 16px;">
+          <button id="saveEditCalendarEventBtn">수정</button>
+          <button id="deleteCalendarEventBtn">삭제</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 일정 등록 모달 추가 -->
+    <div id="addCalendarEventModal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="closeAddCalendarEventModal">&times;</span>
+        <h3 style="color:#ff6b6b;margin-bottom:14px;">일정 등록</h3>
+        <label for="modalCalendarEventDate">시작 날짜</label>
+        <input type="date" id="modalCalendarEventDate">
+        <label for="modalCalendarEventEndDate">종료 날짜</label>
+        <input type="date" id="modalCalendarEventEndDate">
+        <label for="modalCalendarEventTitle">일정 내용</label>
+        <input type="text" id="modalCalendarEventTitle" placeholder="일정을 입력하세요.">
+        <label for="modalCalendarEventAuthor">작성자</label>
+        <select id="modalCalendarEventAuthor">
+          <option value="J.W">J.W</option>
+          <option value="H.N">H.N</option>
+        </select>
+        
+        <button id="modalAddCalendarEventBtn"><i class="fas fa-plus"></i> 일정 추가</button>
       </div>
     </div>
   </div>
 
   <script src="app.js"></script>
   <script>
-    const changeNameModal = document.getElementById('changeNameModal');
-    const closeChangeNameModal = document.getElementById('closeChangeNameModal');
+    document.addEventListener('DOMContentLoaded', () => {
+      const loginScreen = document.getElementById('login-screen');
+      const appContainer = document.getElementById('app-container');
+      const changeNameBtn = document.getElementById('changeNameBtn');
 
-    changeNameBtn.onclick = () => {
-      highlightSelectedInitial(); // 현재 계정 강조
-      changeNameModal.style.display = 'flex';
-    };
+      const myName = localStorage.getItem('myName');
 
-    closeChangeNameModal.onclick = () => {
-      changeNameModal.style.display = 'none';
-    };
-
-    window.addEventListener('click', e => {
-      if (e.target === changeNameModal) {
-        changeNameModal.style.display = 'none';
-      }
-    });
-
-    document.querySelectorAll('.initial-option').forEach(btn => {
-      btn.onclick = () => {
-        const name = btn.dataset.name;
-        localStorage.setItem('myName', name);
-        highlightSelectedInitial(); // 강조 업데이트
-        alert(`계정이 '${name}'으로 변경되었습니다!`);
-        changeNameModal.style.display = 'none';
-        location.reload();
-      };
-    });
-
-    function highlightSelectedInitial() {
-      const currentName = localStorage.getItem('myName');
-      document.querySelectorAll('.initial-option').forEach(btn => {
-        if (btn.dataset.name === currentName) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-    }
-
-    /*firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        // user.displayName 또는 user.email 사용
-        myName = user.displayName || user.email;
+      if (myName && ['J.W', 'H.N', 'Guest'].includes(myName)) {
+        loginScreen.style.display = 'none';
+        appContainer.style.display = 'block';
       } else {
-        // 로그인 UI 표시
+        loginScreen.style.display = 'flex';
+        appContainer.style.display = 'none';
       }
-    });*/
+
+      document.querySelectorAll('#login-screen .initial-option').forEach(btn => {
+        btn.onclick = () => {
+          const name = btn.dataset.name;
+          localStorage.setItem('myName', name);
+          location.reload();
+        };
+      });
+
+      if (changeNameBtn) {
+        changeNameBtn.onclick = () => {
+          localStorage.removeItem('myName');
+          location.reload();
+        };
+      }
+
+      const h1 = document.querySelector('#app-container h1');
+      if (h1) {
+        h1.style.cursor = 'pointer';
+        h1.onclick = () => {
+          localStorage.removeItem('myName');
+          location.reload();
+        };
+      }
+    });
   </script>
 </body>
 </html> 
