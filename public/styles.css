@@ -39,8 +39,10 @@ h1 {
   border-radius: 20px 20px 0 0;
   transition: background 0.2s, color 0.2s;
   font-family: 'Jua', 'Arial', sans-serif;
+  transition: transform 0.2s ease-in-out;
 }
 .tab.active, .tab-btn.active {
+  transform: scale(1.1);
   background: #ff6b6b;
   color: #fff;
 }
@@ -49,6 +51,7 @@ h1 {
   display: flex;
   justify-content: center;
   gap: 10px;
+  margin-top: 50px;
   margin-bottom: 18px;
 }
 .filters input, .filters select {
@@ -583,6 +586,8 @@ input[type="checkbox"]:checked {
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow: visible; /* 기본적으로 hidden이면 자식이 넘쳐도 안 보임 */
+  position: relative; /* z-index를 쓸 경우 필요할 수도 있음 */
 }
 .album-card img {
   width: 100px;
@@ -590,6 +595,13 @@ input[type="checkbox"]:checked {
   object-fit: cover;
   background: #eee;
   margin-bottom: 8px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.album-card img:hover {
+  transform: scale(1.2);
+  z-index: 10;
+  position: relative;
 }
 .album-card button.delete-album {
   background: #ffd8d8;
@@ -747,7 +759,7 @@ input[type="checkbox"]:checked {
 
 #question-section {
   max-width: 650px;
-  margin: 0 auto;
+  margin: 50px auto;
   width: 100%;
   background: #fff5f5;
   border-radius: 18px;
@@ -756,6 +768,7 @@ input[type="checkbox"]:checked {
 }
 .question-header {
   margin-bottom: 18px;
+  padding: 10px;
 }
 .question-title {
   font-size: 1.25em;
@@ -957,6 +970,7 @@ input[type="checkbox"]:checked {
 
 .no-results {
   text-align: center;
+  margin-top: 30px;
   padding: 30px;
   color: #888;
   font-size: 1.1em;
@@ -1018,6 +1032,7 @@ input[type="checkbox"]:checked {
 .question-search-bar {
   display: flex;
   justify-content: center;
+  margin-bottom: 30px;
   gap: 10px;
   margin-top: 25px;
 }
@@ -1096,6 +1111,7 @@ input[type="checkbox"]:checked {
 }
 .calendar-cell {
   border: 1px solid #fff5f5;
+  
   padding: 6px;
   cursor: pointer;
   min-height: 90px;
@@ -1103,6 +1119,14 @@ input[type="checkbox"]:checked {
   font-size: 0.9em;
   position: relative;
   background: #fff;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out,border-radius 0.2s;
+}
+
+.calendar-cell:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 107, 160, 0.15);
+  border-radius: 10px;
+  z-index: 1;
 }
 
 /* 오늘 날짜 셀 스타일 */
@@ -1125,8 +1149,9 @@ input[type="checkbox"]:checked {
 
 .calendar-cell.today:hover {
   background: linear-gradient(135deg, #ffd8d8 0%, #ffe9ec 100%);
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(255, 123, 156, 0.3);
+  transform: scale(1.08);
+  box-shadow: 0 8px 20px rgba(255, 123, 156, 0.4);
+  z-index: 3;
 }
 
 
@@ -1163,7 +1188,7 @@ input[type="checkbox"]:checked {
 
 #calendar-section.tab-content {
   max-width: 650px;
-  margin: 0 auto;
+  margin: 50px auto;
   width: 100%;
   background: #ffffff;
   border-radius: 18px;
@@ -1275,9 +1300,24 @@ input[type="checkbox"]:checked {
 }
 
 /* 토끼 아이콘 스타일 */
+@keyframes bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  80% {
+    transform: scale(1.2);
+  }
+}
+
 .calendar-rabbit-icon {
   width: 120px;
   height: auto;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.calendar-rabbit-icon:hover {
+  animation: bounce 0.5s ease-in-out;
 }
 
 /* 달력 화살표 버튼 스타일 */
@@ -1487,5 +1527,84 @@ input[type="checkbox"]:checked {
 
 .letter-icon:hover {
   transform: scale(1.5);
+}
+
+.main-footer {
+  margin-top: 100px;
+  padding-top: 25px;
+  
+}
+
+.footer-content {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 0.9em;
+  border-top: 2px solid #ffd6d6;
+  padding-top: 25px;
+}
+
+.footer-row {
+  display: flex;
+  align-items: center;
+  color: #555;
+}
+
+.footer-row.footer-notice {
+    padding-bottom: 12px;
+    border-bottom: 2px solid  #ffd6d6;
+}
+
+.footer-title {
+  font-weight: bold;
+  width: 90px;
+  flex-shrink: 0;
+  color: #333;
+}
+
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 5px;
+}
+
+.footer-links a {
+  color: #555;
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
+
+.footer-divider {
+    color: #e0e0e0;
+}
+
+.footer-link-more {
+  margin-left: auto;
+  color: #555;
+  text-decoration: none;
+  font-size: 0.95em;
+}
+
+.footer-link-more:hover {
+  text-decoration: underline;
+}
+
+.footer-title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footer-title-link:hover {
+    text-decoration: underline;
+}
+
+.header-link {
+    color: inherit;
+    text-decoration: none;
 }
 

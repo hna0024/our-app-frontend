@@ -139,8 +139,10 @@ input[type="password"]:focus {
     text-decoration: none;
     font-size: 0.9em;
     margin-top: 10px;
+    transition: transform 0.2s ease-in-out;
 }
 
 .back-link:hover {
     color: #ff7b9c;
+    transform: scale(1.3);
 } 

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>개발노트</title>
+  <link rel="icon" type="image/png" href="rabbit-icon.png">
+  <link rel="stylesheet" href="dev_notes.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+  
+    <!-- Firebase Config -->
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyD0GVrK55GdzCeUNzEp2suL861qoFURpDo",
+        authDomain: "memo-app-backend-24bb4.firebaseapp.com",
+        projectId: "memo-app-backend-24bb4",
+        storageBucket: "memo-app-backend-24bb4.firebasestorage.app",
+        messagingSenderId: "848227443507",
+        appId: "1:848227443507:web:be5390301f33a52667d446",
+        databaseURL: "https://memo-app-backend-24bb4-default-rtdb.asia-southeast1.firebasedatabase.app"
+      };
+      
+      let firebaseInitialized = false;
+      try {
+        firebase.initializeApp(firebaseConfig);
+        firebaseInitialized = true;
+      } catch (error) {
+        console.error('Firebase initialization error:', error);
+      }
+    </script>
+</head>
+<body>
+ 
+  <div id="app-container">
+    <h1>개발노트</h1>
+    <div class="OurApp">
+        <a href="index.html" class="header-link">OURAPP</a>
+    </div>
+    <div class="main">
+      <div class="column" id="devNoteCol">
+        <h2>📝 개발 일지</h2>
+        <div id="devNoteList"></div>
+        <div id="pagination" class="pagination"></div>
+      </div>
+    </div>
+    <div class="filters">
+        <input type="text" id="search" placeholder="검색">
+        <button id="addBtn">+ 추가</button>
+      </div>
+ 
+    
+    <!-- 모달 -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span id="closeModal" class="close">&times;</span>
+        <h3 id="modalTitle">개발노트 추가</h3>
+        <form id="devNoteForm">
+           <label>날짜:
+             <input type="datetime-local" id="modalDate" required>
+           </label>
+          <label>내용:
+            <textarea id="modalContent" required></textarea>
+          </label>
+          <button type="submit" id="saveBtn">저장</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="dev_notes.js"></script>
+</body>
+</html> 
