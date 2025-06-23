@@ -1342,10 +1342,27 @@ if (!firebaseInitialized) {
       <div class="answer-meta">date: ${ans.time}</div>
       <div class="answer-author">from: ${ans.author}</div>
       <button class="delete-answer-btn" title="삭제"><i class="fas fa-trash"></i></button>
+      ${ans.author === myName ? '<button class="edit-answer-btn" title="수정" style="position:absolute;top:16px;right:48px;background:none;border:none;cursor:pointer;font-size:1.3em;color:#228be6;padding:0;margin:0;"><i class="fas fa-pen"></i></button>' : ''}
     `;
     card.querySelector('.delete-answer-btn').onclick = () => {
       deleteAnswer(ans.questionKey, ans.id);
     };
+    if (ans.author === myName) {
+      card.querySelector('.edit-answer-btn').onclick = () => {
+        editingQuestionAnswer = ans;
+        // 날짜를 datetime-local로 변환
+        if (ans.time) {
+          const dateParts = ans.time.split(' ');
+          const dateStr = dateParts[0];
+          const timeStr = dateParts[1] || '00:00';
+          const [year, month, day] = dateStr.split('-');
+          const [hour, minute] = timeStr.split(':');
+          document.getElementById('editQuestionAnswerDate').value = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+        }
+        document.getElementById('editQuestionAnswerContent').value = ans.content || '';
+        document.getElementById('editQuestionAnswerModal').style.display = 'flex';
+      };
+    }
     return card;
   }
 
@@ -1667,5 +1684,41 @@ if (!firebaseInitialized) {
   }
   closeAddCalendarEventModal.onclick = () => {
     closeAddCalendarEventModalFunc();
+  };
+
+  // ===================== 질문 답변 수정 모달 기능 =====================
+  let editingQuestionAnswer = null;
+  const editQuestionAnswerModal = document.getElementById('editQuestionAnswerModal');
+  const closeEditQuestionAnswerModal = document.getElementById('closeEditQuestionAnswerModal');
+  const editQuestionAnswerDate = document.getElementById('editQuestionAnswerDate');
+  const editQuestionAnswerContent = document.getElementById('editQuestionAnswerContent');
+  const saveEditQuestionAnswerBtn = document.getElementById('saveEditQuestionAnswerBtn');
+
+  closeEditQuestionAnswerModal.onclick = () => {
+    editQuestionAnswerModal.style.display = 'none';
+    editingQuestionAnswer = null;
+  };
+  window.onclick = function(e) {
+    if (e.target === editQuestionAnswerModal) {
+      editQuestionAnswerModal.style.display = 'none';
+      editingQuestionAnswer = null;
+    }
+    // ... existing code ...
+  };
+  saveEditQuestionAnswerBtn.onclick = () => {
+    if (!editingQuestionAnswer) return;
+    // datetime-local 값을 기존 형식으로 변환
+    const dateTimeValue = editQuestionAnswerDate.value;
+    const dateTime = new Date(dateTimeValue);
+    const dateStr = `${dateTime.getFullYear()}-${String(dateTime.getMonth()+1).padStart(2,'0')}-${String(dateTime.getDate()).padStart(2,'0')} ${String(dateTime.getHours()).padStart(2,'0')}:${String(dateTime.getMinutes()).padStart(2,'0')}`;
+    const updated = {
+      content: editQuestionAnswerContent.value,
+      time: dateStr
+    };
+    db.ref(`questionAnswers/${editingQuestionAnswer.questionKey}/${editingQuestionAnswer.id}`).update(updated).then(() => {
+      editQuestionAnswerModal.style.display = 'none';
+      editingQuestionAnswer = null;
+      renderQuestionAnswers();
+    });
   };
 }
