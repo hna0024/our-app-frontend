@@ -606,6 +606,13 @@ if (!firebaseInitialized) {
     calendarSection.style.display = ''; // 달력 섹션 보이게
 
     // Note: 탭 버튼의 active 클래스는 index.html에서 설정합니다.
+
+    // 사용자 환영 메시지 표시
+    const userWelcome = document.getElementById('user-welcome');
+    let myName = localStorage.getItem('myName');
+    if (userWelcome && myName) {
+      userWelcome.textContent = `${myName}님 환영합니다! 🐰`;
+    }
   });
 
   const editAlbumModal = document.getElementById('editAlbumModal');
