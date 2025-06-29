@@ -6,6 +6,9 @@
     <link rel="icon" type="image/png" href="rabbit-icon.png">
     <link rel="stylesheet" href="login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 <body>
     <div class="login-container initials-container">
@@ -19,16 +22,57 @@
         </div>
     </div>
     <script>
+        // Firebase Config (from index.html)
+        const firebaseConfig = {
+            apiKey: "AIzaSyD0GVrK55GdzCeUNzEp2suL861qoFURpDo",
+            authDomain: "memo-app-backend-24bb4.firebaseapp.com",
+            projectId: "memo-app-backend-24bb4",
+            storageBucket: "memo-app-backend-24bb4.firebasestorage.app",
+            messagingSenderId: "848227443507",
+            appId: "1:848227443507:web:be5390301f33a52667d446",
+            databaseURL: "https://memo-app-backend-24bb4-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+        if (firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
         document.querySelectorAll('.initial-option').forEach(btn => {
             btn.onclick = () => {
                 const name = btn.dataset.name;
                 if (name === 'Guest') {
-                    localStorage.setItem('myName', 'Guest');
-                    window.location.href = 'index.html';
+                    // 익명 인증 후 DB에 myName: 'Guest' 저장
+                    firebase.auth().signInAnonymously().then(userCredential => {
+                        const user = userCredential.user;
+                        firebase.database().ref('userInitials/' + user.uid).set({ myName: 'Guest' }).then(() => {
+                            localStorage.setItem('myName', 'Guest');
+                            window.location.href = 'index.html';
+                        });
+                    }).catch(error => {
+                        alert('익명 로그인 실패: ' + error.message);
+                    });
                 } else {
                     window.location.href = `login.html?user=${name}`;
                 }
             };
+        });
+
+        // Firebase 인증 상태 변화 감지
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                // 로그인된 경우, DB에서 myName을 가져와 localStorage와 동기화
+                firebase.database().ref('userInitials/' + user.uid).once('value').then(snapshot => {
+                    const myName = snapshot.val() && snapshot.val().myName;
+                    if (myName) {
+                        localStorage.setItem('myName', myName);
+                        // 환영 메시지 등 모든 myName 사용처에서 이 값을 사용
+                        const userWelcome = document.getElementById('user-welcome');
+                        if (userWelcome) userWelcome.textContent = `${myName}님 환영합니다! 🐰`;
+                    }
+                });
+            } else {
+                // 로그아웃 상태면 로그인 페이지로 이동
+                window.location.href = 'login.html';
+            }
         });
     </script>
 </body>

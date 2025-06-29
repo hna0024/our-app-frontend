@@ -21,6 +21,7 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script>
         // Firebase Config (from index.html)
         const firebaseConfig = {
@@ -46,15 +47,37 @@
         loginBtn.onclick = () => {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            
-            // This is a placeholder for actual Firebase Auth logic.
-            // For now, let's just simulate a successful login.
-            if (email && password) {
-                localStorage.setItem('myName', userInitial);
-                window.location.href = 'index.html';
-            } else {
+            if (!email || !password) {
                 alert('이메일과 비밀번호를 입력해주세요.');
+                return;
             }
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    const user = userCredential.user;
+                    // 최초 로그인 시 이니셜 저장, 이후엔 불러오기
+                    const initialsRef = firebase.database().ref('userInitials/' + user.uid);
+                    initialsRef.once('value').then(snapshot => {
+                        if (!snapshot.exists() && userInitial) {
+                            // 최초 로그인: 이니셜 저장
+                            initialsRef.set({ myName: userInitial }).then(() => {
+                                localStorage.setItem('myName', userInitial);
+                                window.location.href = 'index.html';
+                            });
+                        } else {
+                            // 이미 존재: 이니셜 불러오기
+                            const myName = snapshot.val() && snapshot.val().myName;
+                            if (myName) {
+                                localStorage.setItem('myName', myName);
+                                window.location.href = 'index.html';
+                            } else {
+                                alert('이니셜 정보가 없습니다. 관리자에게 문의하세요.');
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    alert('로그인 실패: ' + error.message);
+                });
         };
     </script>
 </body>

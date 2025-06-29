@@ -585,6 +585,33 @@ if (!firebaseInitialized) {
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    // 사용자 환영 메시지 표시 함수
+    function showWelcome() {
+      const userWelcome = document.getElementById('user-welcome');
+      let myName = localStorage.getItem('myName');
+      if (userWelcome && myName) {
+        userWelcome.textContent = `${myName}님 환영합니다! 🐰`;
+      }
+    }
+
+    // Firebase 인증 상태 확인 및 myName 동기화
+    if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+      const user = firebase.auth().currentUser;
+      if (firebase.database) {
+        firebase.database().ref('userInitials/' + user.uid).once('value').then(snapshot => {
+          const myName = snapshot.val() && snapshot.val().myName;
+          if (myName) {
+            localStorage.setItem('myName', myName);
+            showWelcome();
+          }
+        });
+      } else {
+        showWelcome();
+      }
+    } else {
+      showWelcome();
+    }
+
     updateDdayDisplay();
     renderCalendar();
     loadCalendarEventsFromFirebase();
@@ -606,13 +633,6 @@ if (!firebaseInitialized) {
     calendarSection.style.display = ''; // 달력 섹션 보이게
 
     // Note: 탭 버튼의 active 클래스는 index.html에서 설정합니다.
-
-    // 사용자 환영 메시지 표시
-    const userWelcome = document.getElementById('user-welcome');
-    let myName = localStorage.getItem('myName');
-    if (userWelcome && myName) {
-      userWelcome.textContent = `${myName}님 환영합니다! 🐰`;
-    }
   });
 
   const editAlbumModal = document.getElementById('editAlbumModal');
