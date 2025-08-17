@@ -69,10 +69,8 @@
                         if (userWelcome) userWelcome.textContent = `${myName}님 환영합니다! 🐰`;
                     }
                 });
-            } else {
-                // 로그아웃 상태면 로그인 페이지로 이동
-                window.location.href = 'login.html';
             }
+            // 로그아웃 상태일 때는 아무것도 하지 않음 (기본 화면으로 유지)
         });
     </script>
 </body>

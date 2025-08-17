@@ -6,6 +6,11 @@ if (!firebaseInitialized) {
   const db = firebase.database();
   const storage = firebase.storage();
 
+  // 현재 로그인된 사용자 UID 가져오기 함수
+  function getCurrentUid() {
+    return firebase.auth().currentUser ? firebase.auth().currentUser.uid : null;
+  }
+
   let editingId = null; // 현재 수정 중인 메모 ID를 저장
   let editingAlbum = null;
   let editingLetter = null;
@@ -276,7 +281,7 @@ if (!firebaseInitialized) {
     const title = calendarEventTitle.value.trim();
     const author = calendarEventAuthor.value;
     const endDate = modalCalendarEventEndDate.value; // 종료 날짜 값 가져오기
-  
+    const authorUid = getCurrentUid();
     if (!date || !title || !endDate) { // 종료 날짜 유효성 검사 추가
       alert('시작 날짜, 종료 날짜, 제목을 입력하세요!');
       return;
@@ -299,7 +304,8 @@ if (!firebaseInitialized) {
         id: ref.key,
         date: eventDateString,
         title,
-        author
+        author,
+        authorUid: authorUid
       };
       eventPromises.push(ref.set(data));
     }
@@ -478,12 +484,14 @@ if (!firebaseInitialized) {
     const dateTimeValue = modalDate.value;
     const dateTime = new Date(dateTimeValue);
     const dateStr = `${dateTime.getFullYear()}-${String(dateTime.getMonth()+1).padStart(2,'0')}-${String(dateTime.getDate()).padStart(2,'0')}, ${String(dateTime.getHours()).padStart(2,'0')}:${String(dateTime.getMinutes()).padStart(2,'0')}`;
-  
+
+    const authorUid = getCurrentUid();
     const memo = {
       type: modalType.value,
       author: modalAuthor.value,
       content: modalContent.value,
-      date: dateStr
+      date: dateStr,
+      authorUid: authorUid
     };
   
     if (editingId) {
@@ -776,20 +784,19 @@ if (!firebaseInitialized) {
     }
     const now = new Date();
     const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}, ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    
+    const authorUid = getCurrentUid();
     // Firebase 저장용 객체
     const letter = {
       content,
       from: myName,
       to,
-      date: dateStr
+      date: dateStr,
+      authorUid: authorUid
     };
-    
     // Firebase에 저장
     const newRef = db.ref('letters').push(); // Firebase 고유 키 생성
     letter.id = newRef.key;                  // 키를 id로 부여
     newRef.set(letter).then(() => showTabAlert('letter'));
-    
     // 화면 초기화
     letterContentInput.value = '';
     currentLetterPage = 1;
@@ -1082,29 +1089,22 @@ if (!firebaseInitialized) {
     const category = albumCategory.value;
     const desc = albumDesc.value.trim();
     const file = albumImage.files[0];
-  
+    const authorUid = getCurrentUid();
     if (!date || !category || !file) {
       alert('날짜, 카테고리, 이미지는 필수입니다!');
       return;
     }
-  
-    console.log('앨범 업로드 시작');
-  
     const fileRef = storage.ref().child(`albums/${Date.now()}_${file.name}`);
     fileRef.put(file)
-      .then(snapshot => {
-        console.log('이미지 업로드 성공');
-        return snapshot.ref.getDownloadURL();
-      })
+      .then(snapshot => snapshot.ref.getDownloadURL())
       .then(url => {
-        console.log('다운로드 URL 얻음:', url);
         const album = {
-          date, place, category, desc, image: url
+          date, place, category, desc, image: url, authorUid: authorUid
         };
         const newRef = db.ref('albums').push();
         album.id = newRef.key;
         newRef.set(album)
-          .then(() => { console.log('앨범 DB 저장 성공:', album); showTabAlert('album'); })
+          .then(() => { showTabAlert('album'); })
           .catch(err => console.error('앨범 DB 저장 실패:', err));
       })
       .catch(err => {
@@ -1492,7 +1492,8 @@ if (!firebaseInitialized) {
     if (!content) return;
     const now = new Date();
     const time = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${now.getHours()}:${now.getMinutes()}`;
-    const answer = { author, content, time };
+    const authorUid = getCurrentUid();
+    const answer = { author, content, time, authorUid: authorUid };
     const qKey = todayQuestion.key;
     const newRef = db.ref(`questionAnswers/${qKey}`).push();
     newRef.set(answer).then(() => showTabAlert('question'));
