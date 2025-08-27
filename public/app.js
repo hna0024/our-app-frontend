@@ -253,16 +253,36 @@ if (!firebaseInitialized) {
     db.ref('calendarEvents').on('value', snapshot => {
       Object.keys(calendarEvents).forEach(k => delete calendarEvents[k]); // 초기화
       snapshot.forEach(child => {
-        const event = child.val();
-        // event 객체와 date 속성이 유효한지 확인
-        if (event && typeof event.date === 'string') {
-          const [y, m, d] = event.date.split('-');
+        const evt = child.val();
+
+        // 1) 단일 날짜 이벤트 (date)
+        if (evt && typeof evt.date === 'string' && evt.date.includes('-')) {
+          const [y, m, d] = evt.date.split('-');
           const key = `${+y}-${+m}-${+d}`;
           if (!calendarEvents[key]) calendarEvents[key] = [];
-          calendarEvents[key].push(event);
-        } else {
-          console.warn('Skipping invalid calendar event data:', event);
+          calendarEvents[key].push(evt);
+          return;
         }
+
+        // 2) 기간 이벤트 (startDate ~ endDate)
+        if (evt && typeof evt.startDate === 'string' && typeof evt.endDate === 'string') {
+          const start = new Date(evt.startDate);
+          const end = new Date(evt.endDate);
+          if (!isNaN(start) && !isNaN(end) && start <= end) {
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+              const yyyy = d.getFullYear();
+              const mm = d.getMonth() + 1;
+              const dd = d.getDate();
+              const key = `${yyyy}-${mm}-${dd}`;
+              if (!calendarEvents[key]) calendarEvents[key] = [];
+              // 날짜 필드를 보강하여 렌더러가 일관되게 사용하도록 함
+              calendarEvents[key].push({ ...evt, date: `${yyyy}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}` });
+            }
+          }
+          return;
+        }
+
+        // 3) 기타 포맷은 조용히 무시 (콘솔 경고 제거)
       });
       renderCalendar();
     });

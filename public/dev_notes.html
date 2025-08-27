@@ -75,5 +75,81 @@
   </div>
 
   <script src="dev_notes.js"></script>
+  <!-- 관리자 인증 모달 (직접 접근 방지) -->
+  <div id="adminAuthModal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width:360px;">
+      <span class="close" id="closeAdminAuthModal">&times;</span>
+      <h3 style="color:#ff6b6b;margin-bottom:14px;">관리자 인증</h3>
+      <form id="adminAuthForm">
+        <p style="margin-bottom:10px;color:#555;">비밀번호 네 자리 숫자를 입력하세요.</p>
+        <input type="password" id="adminPassInput" inputmode="numeric" pattern="\\d{4}" maxlength="4" placeholder="****" autocomplete="new-password" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-bottom:10px;">
+        <div id="adminPassError" style="display:none;color:#ff6b6b;font-size:0.9em;margin-bottom:10px;">비밀번호가 올바르지 않습니다.</div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button type="button" id="cancelAdminAuthBtn">취소</button>
+          <button type="submit" id="confirmAdminAuthBtn">확인</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 페이지 진입 가드: index에서 인증 시 세션 저장됨
+      const adminModal = document.getElementById('adminAuthModal');
+      const closeAdminModalBtn = document.getElementById('closeAdminAuthModal');
+      const adminPassInput = document.getElementById('adminPassInput');
+      const adminPassError = document.getElementById('adminPassError');
+      const cancelAdminAuthBtn = document.getElementById('cancelAdminAuthBtn');
+      const confirmAdminAuthBtn = document.getElementById('confirmAdminAuthBtn');
+
+      function openAdminModal() {
+        adminPassInput.value = '';
+        adminPassError.style.display = 'none';
+        adminModal.style.display = 'block';
+        setTimeout(() => adminPassInput.focus(), 0);
+      }
+
+      function closeAdminModal() {
+        adminModal.style.display = 'none';
+      }
+
+      function validateAndProceed() {
+        const pass = adminPassInput.value.trim();
+        if (pass === '0701') {
+          sessionStorage.setItem('devAuthed', '1');
+          closeAdminModal();
+        } else {
+          adminPassError.style.display = 'block';
+        }
+      }
+
+      if (sessionStorage.getItem('devAuthed') !== '1') {
+        openAdminModal();
+      }
+
+      closeAdminModalBtn && (closeAdminModalBtn.onclick = () => {
+        // 인증 없이 나가면 홈으로 돌려보내기
+        closeAdminModal();
+        window.location.href = 'index.html';
+      });
+      cancelAdminAuthBtn && (cancelAdminAuthBtn.onclick = () => {
+        closeAdminModal();
+        window.location.href = 'index.html';
+      });
+      const adminAuthForm = document.getElementById('adminAuthForm');
+      if (adminAuthForm) {
+        adminAuthForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          validateAndProceed();
+        });
+      }
+      adminModal && (adminModal.onclick = (e) => { if (e.target === adminModal) { closeAdminModal(); window.location.href = 'index.html'; } });
+      adminPassInput && (adminPassInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          validateAndProceed();
+        }
+      }));
+    });
+  </script>
 </body>
 </html> 

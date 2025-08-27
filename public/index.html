@@ -11,6 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   
     <!-- ✅ Firebase Config -->
     <script>
@@ -207,7 +208,7 @@
         <div class="footer-content">
             <div class="footer-row footer-notice">
               <strong class="footer-title">
-                <a href="dev_notes.html" class="footer-title-link">Development</a>
+                <a href="dev_notes.html" class="footer-title-link" id="devLink">Development</a>
               </strong>
               <a href="#" class="footer-link-more">ViewAll &gt;</a> <!-- 클래스 위치 수정 -->
             </div>
@@ -351,6 +352,22 @@
   </div>
 
   <script src="app.js"></script>
+  <!-- 관리자 인증 모달 -->
+  <div id="adminAuthModal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width:360px;">
+      <span class="close" id="closeAdminAuthModal">&times;</span>
+      <h3 style="color:#ff6b6b;margin-bottom:14px;">관리자 인증</h3>
+      <form id="adminAuthForm">
+        <p style="margin-bottom:10px;color:#555;">비밀번호 네 자리 숫자를 입력하세요.</p>
+        <input type="password" id="adminPassInput" inputmode="numeric" pattern="\\d{4}" maxlength="4" placeholder="****" autocomplete="new-password" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-bottom:10px;">
+        <div id="adminPassError" style="display:none;color:#ff6b6b;font-size:0.9em;margin-bottom:10px;">비밀번호가 올바르지 않습니다.</div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button type="button" id="cancelAdminAuthBtn">취소</button>
+          <button type="submit" id="confirmAdminAuthBtn">확인</button>
+        </div>
+      </form>
+    </div>
+  </div>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const myName = localStorage.getItem('myName');
@@ -378,6 +395,62 @@
           window.location.href = 'select_initials.html';
         };
       }
+
+      // Development 링크 관리자 인증 가드
+      const devLink = document.getElementById('devLink');
+      const adminModal = document.getElementById('adminAuthModal');
+      const closeAdminModalBtn = document.getElementById('closeAdminAuthModal');
+      const adminPassInput = document.getElementById('adminPassInput');
+      const adminPassError = document.getElementById('adminPassError');
+      const cancelAdminAuthBtn = document.getElementById('cancelAdminAuthBtn');
+      const confirmAdminAuthBtn = document.getElementById('confirmAdminAuthBtn');
+
+      function openAdminModal() {
+        adminPassInput.value = '';
+        adminPassError.style.display = 'none';
+        adminModal.style.display = 'block';
+        setTimeout(() => adminPassInput.focus(), 0);
+      }
+
+      function closeAdminModal() {
+        adminModal.style.display = 'none';
+      }
+
+      function validateAndProceed(href) {
+        const pass = adminPassInput.value.trim();
+        if (pass === '0701') {
+          sessionStorage.setItem('devAuthed', '1');
+          window.location.href = href || 'dev_notes.html';
+        } else {
+          adminPassError.style.display = 'block';
+        }
+      }
+
+      if (devLink) {
+        devLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          openAdminModal();
+        });
+      }
+
+      // form submit으로 검증 (CSP 우회: 인라인 핸들러 사용 안 함)
+      const adminAuthForm = document.getElementById('adminAuthForm');
+      if (adminAuthForm) {
+        adminAuthForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          validateAndProceed(devLink ? devLink.getAttribute('href') : undefined);
+        });
+      }
+
+      closeAdminModalBtn && (closeAdminModalBtn.onclick = closeAdminModal);
+      cancelAdminAuthBtn && (cancelAdminAuthBtn.onclick = closeAdminModal);
+      adminModal && (adminModal.onclick = (e) => { if (e.target === adminModal) closeAdminModal(); });
+      adminPassInput && (adminPassInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          validateAndProceed(devLink ? devLink.getAttribute('href') : undefined);
+        }
+      }));
     });
   </script>
 </body>
