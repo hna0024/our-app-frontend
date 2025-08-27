@@ -47,6 +47,12 @@ if (!firebaseInitialized) {
   const modalTitle = document.getElementById('modalTitle');
   const modalDate = document.getElementById('modalDate');
   const saveBtn = document.getElementById('saveBtn');
+  // 감사일기 잠금 관련 DOM (메모 전용)
+  const memoLockOverlay = document.getElementById('memoLockOverlay');
+  const memoUnlockForm = document.getElementById('memoUnlockForm');
+  const memoUnlockInput = document.getElementById('memoUnlockInput');
+  const memoUnlockError = document.getElementById('memoUnlockError');
+  const memoRelockBtn = document.getElementById('memoRelockBtn');
   const search = document.getElementById('search');
   const typeFilter = document.getElementById('typeFilter');
   const authorFilter = document.getElementById('authorFilter');
@@ -106,6 +112,7 @@ if (!firebaseInitialized) {
 
   // 렌더링 함수
   function render() {
+    const isMemoUnlocked = sessionStorage.getItem('ourapp_memo_unlocked') === '1';
     memoList.innerHTML = '';
     todoList.innerHTML = '';
     const searchVal = search.value.toLowerCase();
@@ -123,9 +130,16 @@ if (!firebaseInitialized) {
     const memoTotalPages = Math.ceil(filteredMemos.length / ITEMS_PER_PAGE) || 1;
     if (memoPage > memoTotalPages) memoPage = memoTotalPages;
     const memoStart = (memoPage - 1) * ITEMS_PER_PAGE;
-    const memoPageItems = filteredMemos.slice(memoStart, memoStart + ITEMS_PER_PAGE);
-    memoPageItems.forEach(memo => memoList.appendChild(createMemoCard(memo)));
-    renderPagination(memoList, memoTotalPages, memoPage, p => { memoPage = p; render(); });
+    if (!isMemoUnlocked) {
+      if (memoLockOverlay) memoLockOverlay.style.display = 'block';
+      if (memoRelockBtn) memoRelockBtn.style.display = 'none';
+    } else {
+      if (memoLockOverlay) memoLockOverlay.style.display = 'none';
+      if (memoRelockBtn) memoRelockBtn.style.display = '';
+      const memoPageItems = filteredMemos.slice(memoStart, memoStart + ITEMS_PER_PAGE);
+      memoPageItems.forEach(memo => memoList.appendChild(createMemoCard(memo)));
+      renderPagination(memoList, memoTotalPages, memoPage, p => { memoPage = p; render(); });
+    }
 
     // 할 일 필터링 및 페이지네이션
     const filteredTodos = memos.filter(memo =>
@@ -558,6 +572,38 @@ if (!firebaseInitialized) {
       this.selectionStart = this.selectionEnd = cursorPos + 1;
     }
   });
+
+  // 감사일기 잠금 처리 (브라우저 기본 검증 우회: 커스텀 검증)
+  const MEMO_LOCK_KEY = 'ourapp_memo_unlocked';
+  if (memoUnlockForm) {
+    memoUnlockForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const raw = (memoUnlockInput && memoUnlockInput.value || '').replace(/\D/g, '');
+      if (memoUnlockInput) memoUnlockInput.value = raw; // 비숫자 제거
+      if (raw.length === 4 && raw === '0701') {
+        sessionStorage.setItem(MEMO_LOCK_KEY, '1');
+        if (memoUnlockError) memoUnlockError.style.display = 'none';
+        render();
+      } else {
+        if (memoUnlockError) memoUnlockError.style.display = 'block';
+      }
+    });
+    // 입력 중 비숫자 차단
+    memoUnlockInput && memoUnlockInput.addEventListener('input', () => {
+      const onlyDigits = memoUnlockInput.value.replace(/\D/g, '').slice(0,4);
+      memoUnlockInput.value = onlyDigits;
+    });
+  }
+
+  // 재잠금: 세션 제거 후 오버레이 표시
+  if (memoRelockBtn) {
+    memoRelockBtn.addEventListener('click', () => {
+      sessionStorage.removeItem(MEMO_LOCK_KEY);
+      if (memoUnlockInput) memoUnlockInput.value = '';
+      if (memoUnlockError) memoUnlockError.style.display = 'none';
+      render();
+    });
+  }
 
   // 편지함 섹션 텍스트 입력 필드에 Enter 키 이벤트 핸들러 추가
   letterContentInput.addEventListener('keydown', function(e) {

@@ -207,6 +207,57 @@ input[type="checkbox"]:checked {
   position: relative;
   text-align: left;
 }
+/* 관리자 인증 모달 전용 스타일 */
+#adminAuthModal .modal-content {
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+}
+#adminAuthModal h3 {
+  color: #ff6b6b;
+  margin-bottom: 14px;
+}
+#adminAuthModal p {
+  margin-bottom: 10px;
+  color: #555;
+}
+#adminPassError {
+  display: none;
+  color: #ff6b6b;
+  font-size: 0.9em;
+  margin-bottom: 10px;
+}
+#adminAuthModal .admin-modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+#adminAuthModal .modal-content button {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 8px;
+  border: none;
+  font-size: 1em;
+  cursor: pointer;
+  font-family: 'Jua', 'Arial', sans-serif;
+  transition: background 0.2s, opacity 0.2s, color 0.2s;
+}
+#adminAuthModal #confirmAdminAuthBtn {
+  background: #b2f2ff;
+  color: #228be6;
+}
+#adminAuthModal #confirmAdminAuthBtn:hover {
+  background: #228be6;
+  color: #fff;
+}
+#adminAuthModal #cancelAdminAuthBtn {
+  background: #ffd8d8;
+  color: #ff6b6b;
+}
+#adminAuthModal #cancelAdminAuthBtn:hover {
+  background: #ff6b6b;
+  color: #fff;
+}
 .close {
   position: absolute;
   right: 18px;
@@ -1683,5 +1734,75 @@ input[type="checkbox"]:checked {
   background: linear-gradient(90deg, #ff7b9c 0%, #ffb6b6 100%);
   box-shadow: 0 4px 16px #ffd8d8;
   transform: translateY(-2px) scale(1.04);
+}
+
+/* 감사일기 잠금 오버레이 (memo 전용) */
+.memo-lock-overlay {
+  display: none;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px #ffe0ec;
+  padding: 24px 20px 18px 20px;
+  margin-top: 10px;
+  text-align: center;
+}
+.memo-lock-icon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 10px auto;
+  display: block;
+}
+.memo-lock-title {
+  color: #ff6b6b;
+  margin-bottom: 8px;
+}
+.memo-lock-desc {
+  color: #555;
+  margin-bottom: 10px;
+}
+.memo-lock-form input[type="password"] {
+  width: 100%;
+}
+.memo-lock-error {
+  display: none;
+  color: #ff6b6b;
+  font-size: 0.9em;
+  margin-bottom: 10px;
+}
+
+/* 감사일기 전용 버튼들 (기존 모달 버튼과 일관) */
+#memoCol .admin-modal-actions button {
+  flex: 1;
+  padding: 5px 20px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1em;
+  cursor: pointer;
+  font-family: 'Jua', 'Arial', sans-serif;
+  transition: background 0.2s, color 0.2s;
+}
+#memoUnlockBtn {
+  background: #b2f2ff;
+  color: #228be6;
+}
+#memoUnlockBtn:hover {
+  background: #228be6;
+  color: #fff;
+}
+.lock-btn {
+  margin-left: 8px;
+  background: #ffd8d8;
+  color: #ff6b6b;
+  border: none;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 0.8em;
+  font-family: 'Jua', 'Arial', sans-serif;
+  cursor: pointer;
+}
+.lock-btn:hover {
+  background: #ff6b6b;
+  color: #fff;
 }
 

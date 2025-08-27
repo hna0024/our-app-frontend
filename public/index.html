@@ -65,8 +65,21 @@
     </div>
     <div class="main">
       <div class="column" id="memoCol">
-        <h2>📝 한 줄의 기적 감사일기</h2>
+        <h2>📝 한 줄의 기적 감사일기 <button id="memoRelockBtn" class="lock-btn" style="display:none;">재잠금</button></h2>
         <div id="memoList"></div>
+        <!-- 감사일기 잠금 오버레이 -->
+        <div id="memoLockOverlay" class="memo-lock-overlay" aria-hidden="true">
+          <img src="Key.png" alt="lock" class="memo-lock-icon" />
+          <h3 class="memo-lock-title">감사일기 잠금</h3>
+          <p class="memo-lock-desc">관련자만 열람 가능합니다. 비밀번호 4자리를 입력하세요.</p>
+          <form id="memoUnlockForm" class="memo-lock-form" novalidate>
+            <input type="password" id="memoUnlockInput" inputmode="numeric" maxlength="4" placeholder="****" autocomplete="new-password" />
+            <div id="memoUnlockError" class="memo-lock-error">비밀번호가 올바르지 않습니다.</div>
+            <div class="admin-modal-actions">
+              <button type="submit" id="memoUnlockBtn">입력</button>
+            </div>
+          </form>
+        </div>
       </div>
       <div class="column" id="todoCol">
         <h2><input type="checkbox" checked disabled> 할 일</h2>
@@ -353,15 +366,15 @@
 
   <script src="app.js"></script>
   <!-- 관리자 인증 모달 -->
-  <div id="adminAuthModal" class="modal" style="display:none;">
-    <div class="modal-content" style="max-width:360px;">
+  <div id="adminAuthModal" class="modal">
+    <div class="modal-content">
       <span class="close" id="closeAdminAuthModal">&times;</span>
-      <h3 style="color:#ff6b6b;margin-bottom:14px;">관리자 인증</h3>
+      <h3>관리자 인증</h3>
       <form id="adminAuthForm">
-        <p style="margin-bottom:10px;color:#555;">비밀번호 네 자리 숫자를 입력하세요.</p>
-        <input type="password" id="adminPassInput" inputmode="numeric" pattern="\\d{4}" maxlength="4" placeholder="****" autocomplete="new-password" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-bottom:10px;">
-        <div id="adminPassError" style="display:none;color:#ff6b6b;font-size:0.9em;margin-bottom:10px;">비밀번호가 올바르지 않습니다.</div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <p>비밀번호 네 자리 숫자를 입력하세요.</p>
+        <input type="password" id="adminPassInput" inputmode="numeric" pattern="\\d{4}" maxlength="4" placeholder="****" autocomplete="new-password">
+        <div id="adminPassError">비밀번호가 올바르지 않습니다.</div>
+        <div class="admin-modal-actions">
           <button type="button" id="cancelAdminAuthBtn">취소</button>
           <button type="submit" id="confirmAdminAuthBtn">확인</button>
         </div>
@@ -408,7 +421,7 @@
       function openAdminModal() {
         adminPassInput.value = '';
         adminPassError.style.display = 'none';
-        adminModal.style.display = 'block';
+        adminModal.style.display = 'flex';
         setTimeout(() => adminPassInput.focus(), 0);
       }
 
